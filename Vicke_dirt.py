@@ -33,5 +33,6 @@ from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
 import numpy as np
 clf = QuadraticDiscriminantAnalysis()
 clf.fit(X, y)
-QuadraticDiscriminantAnalysis()
-print(clf.predict([[-0.8, -1]]))
+#QDA(priors=None, reg_param=0.0)
+print(clf.predict([X[1]]))
+print(clf.predict([np.ones(30)]))
