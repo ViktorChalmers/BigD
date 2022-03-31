@@ -5,23 +5,6 @@ import matplotlib.pyplot as plt
 from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis as QDA
 
 
-def split_data(test_frac, y, X):
-    train_y = []
-    test_y = []
-    train_X =  []
-    test_X =  []
-
-    data_size = np.size(y)
-    n = int(test_frac * data_size)
-    l = [i for i in range(0, data_size)] 
-    index_list = random.sample(range(len(l)), n)
-
-    #Not finnished
-    for i in index_list:
-        test_y.append(y[i]) 
-
-    return train_y, test_y, train_X, test_X 
-
 def folding(n_folds,y,X):
     data_size = np.size(y)
     n = int(data_size/n_folds)
