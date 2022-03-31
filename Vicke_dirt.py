@@ -110,15 +110,18 @@ print('\n\nCross-Validation accuracy: %.3f +/- %.3f' % (np.mean(scores), np.std(
 from sklearn.model_selection import cross_val_score
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
-from sklearn.svm import SVC
-from sklearn.ensemble import RandomForestClassifier
+from sklearn import tree
+from sklearn.metrics import f1_score
 
 
 #
 # Create an instance of Pipeline
-#
+clf2 = tree.DecisionTreeClassifier()
 #pipeline = make_pipeline(StandardScaler(), RandomForestClassifier(n_estimators=100, max_depth=4))
-pipeline = make_pipeline(StandardScaler(), clf)
+pipeline = make_pipeline(StandardScaler(), clf2)
+predictions = pipeline.predict(X)
+#f1=f1_score(y,predictions, average=None)
+
 # Pass instance of pipeline and training and test data set
 # cv=10 represents the StratifiedKFold with 10 folds
 #
