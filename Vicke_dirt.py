@@ -42,7 +42,7 @@ ones = y[y==1]
 zeros = y[y==0]
 print(f"%Ones: {len(ones)/len(y)*100},%Zeros: {len(zeros)/len(y)*100}")
 
-from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
+from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis as QDA
 import numpy as np
 from sklearn.model_selection import train_test_split
 
@@ -56,7 +56,7 @@ QDA assumes that each class has its own covariance matrix (different from LDA).
 #print(len(y_train))
 
 #for i in range(batch_size):
-#    clf = QuadraticDiscriminantAnalysis()
+clf = QDA()
 #    clf.fit(X_train[i], y_train[i])
 
 
@@ -64,8 +64,8 @@ QDA assumes that each class has its own covariance matrix (different from LDA).
 #QDA(priors=None, reg_param=0.0)
 #print(clf.predict([X_test[1][1]]))
 #print(clf.predict([np.ones(30)]))
-
-kf = KFold(n_splits=2)
+'''
+kf = KFold(n_splits=6)
 kf.get_n_splits(X)
 print(kf)
 for train_index, test_index in kf.split(X):
@@ -74,3 +74,56 @@ for train_index, test_index in kf.split(X):
     y_train, y_test = y[train_index], y[test_index]
 print(np.shape(X))
 print(np.shape(X_train))
+'''
+'''
+from sklearn.model_selection import cross_val_score
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import StandardScaler
+from sklearn.svm import SVC
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import StratifiedKFold
+
+#
+# Create an instance of Pipeline
+#
+pipeline = make_pipeline(StandardScaler(), RandomForestClassifier(n_estimators=100, max_depth=4))
+#
+# Create an instance of StratifiedKFold which can be used to get indices of different training and test folds
+#
+strtfdKFold = StratifiedKFold(n_splits=10)
+X_train=X
+y_train = y
+kfold = strtfdKFold.split(X_train, y_train)
+scores = []
+#
+#
+#
+for k, (train, test) in enumerate(kfold):
+    pipeline.fit(X_train.iloc[train, :], y_train.iloc[train])
+    score = pipeline.score(X_train.iloc[test, :], y_train.iloc[test])
+    scores.append(score)
+    print('Fold: %2d, Training/Test Split Distribution: %s, Accuracy: %.3f' % (
+    k + 1, np.bincount(y_train.iloc[train]), score))
+
+print('\n\nCross-Validation accuracy: %.3f +/- %.3f' % (np.mean(scores), np.std(scores)))
+'''
+from sklearn.model_selection import cross_val_score
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import StandardScaler
+from sklearn.svm import SVC
+from sklearn.ensemble import RandomForestClassifier
+
+
+#
+# Create an instance of Pipeline
+#
+#pipeline = make_pipeline(StandardScaler(), RandomForestClassifier(n_estimators=100, max_depth=4))
+pipeline = make_pipeline(StandardScaler(), clf)
+# Pass instance of pipeline and training and test data set
+# cv=10 represents the StratifiedKFold with 10 folds
+#
+scores = cross_val_score(pipeline, X, y, cv=10, n_jobs=1)
+
+print('Cross Validation accuracy scores: %s' % scores)
+
+print('Cross Validation accuracy: %.3f +/- %.3f' % (np.mean(scores), np.std(scores)))
