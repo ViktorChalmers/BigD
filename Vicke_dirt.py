@@ -1,4 +1,5 @@
 import pandas as pd
+from sklearn.model_selection import KFold
 
 def split_data(X, y, n=10):
     X_train = [None]*n
@@ -9,7 +10,7 @@ def split_data(X, y, n=10):
     for i in range(n):
         X_train[i], X_test[i], y_train[i], y_test[i] = train_test_split(X, y, train_size=1/n, test_size=1/n)
     '''
-    X_train =
+    #X_train =
     return X_train, X_test, y_train, y_test
 
 # Load UCI breast cancer dataset with column names and remove ID column
@@ -50,16 +51,26 @@ Observation of each class is drawn from a normal distribution (same as LDA).
 QDA assumes that each class has its own covariance matrix (different from LDA).
 '''
 #X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.1, test_size=0.1)
-batch_size = 4
-X_train, X_test, y_train, y_test = split_data(X, y, batch_size)
-print(len(y_train))
+#batch_size = 4
+##X_train, X_test, y_train, y_test = split_data(X, y, batch_size)
+#print(len(y_train))
 
-for i in range(batch_size):
-    clf = QuadraticDiscriminantAnalysis()
-    clf.fit(X_train[i], y_train[i])
+#for i in range(batch_size):
+#    clf = QuadraticDiscriminantAnalysis()
+#    clf.fit(X_train[i], y_train[i])
 
 
 
 #QDA(priors=None, reg_param=0.0)
-print(clf.predict([X_test[1][1]]))
-print(clf.predict([np.ones(30)]))
+#print(clf.predict([X_test[1][1]]))
+#print(clf.predict([np.ones(30)]))
+
+kf = KFold(n_splits=2)
+kf.get_n_splits(X)
+print(kf)
+for train_index, test_index in kf.split(X):
+    #print("TRAIN:", train_index, "TEST:", test_index)
+    X_train, X_test = X[train_index], X[test_index]
+    y_train, y_test = y[train_index], y[test_index]
+print(np.shape(X))
+print(np.shape(X_train))
