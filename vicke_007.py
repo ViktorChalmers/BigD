@@ -1,5 +1,10 @@
 import pandas as pd
 import numpy as np
+
+from sklearn.model_selection import cross_val_score
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import StandardScaler
+from sklearn import tree
 import matplotlib.pyplot as plt
 
 uci_bc_data = pd.read_csv(
@@ -39,6 +44,8 @@ def optimusPrime(X):
 
 
 prime = optimusPrime(X)
-plt.plot(X[:,0],y,"o")
-plt.plot(prime[:,0],y,"o")
-plt.show()
+
+clf2 = tree.DecisionTreeClassifier()
+#pipeline = make_pipeline(StandardScaler(), RandomForestClassifier(n_estimators=100, max_depth=4))
+pipeline = make_pipeline(StandardScaler(), clf2)
+predictions = pipeline.predict(X)
