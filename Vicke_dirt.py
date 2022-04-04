@@ -1,6 +1,14 @@
 import pandas as pd
 from sklearn.model_selection import KFold
 
+def optimusPrime(X):
+    prime = np.zeros(np.shape(X))
+
+    for i in range(len(X[0])):
+        prime[:,i] = (X[:,i]-np.mean(X[:,i]))/np.sqrt(np.std(X[:,i]))
+
+    return prime
+
 def split_data(X, y, n=10):
     X_train = [None]*n
     X_test = [None]*n
@@ -116,11 +124,14 @@ from sklearn.metrics import f1_score
 
 #
 # Create an instance of Pipeline
-clf2 = tree.DecisionTreeClassifier()
+X = optimusPrime(X)
+clf2 = tree.DecisionTreeClassifier().fit(X, y)
+
 #pipeline = make_pipeline(StandardScaler(), RandomForestClassifier(n_estimators=100, max_depth=4))
-pipeline = make_pipeline(StandardScaler(), clf2)
+pipeline = make_pipeline(StandardScaler().fit(X, y), clf2)
+
 predictions = pipeline.predict(X)
-#f1=f1_score(y,predictions, average=None)
+f1 = f1_score(y, predictions, average=None)
 
 # Pass instance of pipeline and training and test data set
 # cv=10 represents the StratifiedKFold with 10 folds
@@ -130,3 +141,5 @@ scores = cross_val_score(pipeline, X, y, cv=10, n_jobs=1)
 print('Cross Validation accuracy scores: %s' % scores)
 
 print('Cross Validation accuracy: %.3f +/- %.3f' % (np.mean(scores), np.std(scores)))
+
+print(f'\n F1 score {f1}')
