@@ -26,7 +26,28 @@ def split_data(X, y, n=10):
 
     return X_train, X_test, y_train, y_test
 
-#def sample_majority():
+
+def imbalance(f_imbalance):
+    new_y = np.copy(y)
+    new_X = np.copy(X)
+    if f_zeros < f_imbalance:
+        zero_ind = list(np.where(y == 0)[0])
+        n_samples = int((len(zeros) - f_imbalance * len(y))/(f_imbalance - 1) + 1)
+        for i in range(n_samples):
+            ind = random.sample(zero_ind, 2)
+            new_sample = 0.95*X[ind[0],:] + 0.05*X[ind[1],:]
+            new_X = np.vstack([new_X, new_sample])
+            new_y = np.append(new_y,0)
+    else:
+        one_ind = list(np.where(y == 1)[0])
+        n_samples = int((len(ones) - f_imbalance * len(y))/(f_imbalance - 1) + 1)
+        print(n_samples)
+        for i in range(n_samples):
+            ind = random.sample(one_ind, 2)
+            new_sample = 0.95*X[ind[0],:] + 0.05*X[ind[1],:]
+            new_X = np.vstack([new_X, new_sample])
+            new_y = np.append(new_y,1)
+    return new_y, new_X
     
 
 # Load UCI breast cancer dataset with column names and remove ID column
@@ -56,21 +77,18 @@ y = uci_bc_data.diagnosis.map({"B": 0, "M": 1}).to_numpy()
 X = uci_bc_data.drop("diagnosis", axis=1).to_numpy()
 ones = y[y==1]
 zeros = y[y==0]
-f_zeros = len(zeros)/len(y)*100
-f_ones = len(ones)/len(y)*100
+f_zeros = len(zeros)/len(y)
+f_ones = len(ones)/len(y)
 print(f"%Ones: {f_ones},%Zeros: {f_zeros}")
 
-#Make more zeros
-print(y)
-zero_ind = np.where(y == 0)
-print(np.array(zero_ind))
-print(random.sample(zero_ind, 2))
-while f_zeros < 90:
-    index = random.sample(zero_ind, 2)
-    #Sample 2 obj from majority class
-    #Create new X-feature
 
+#Make more zeros/ones to prefered imbalance
+imbalance_frac = 0.7 #[0.5, 0.65, 0.75, 0.85, 0.95]
+new_y, new_X = imbalance(imbalance_frac)
 
+#Make the predictions and stat learning with sklearn for the different cases
+
+    
 
 '''
 clf = QDA()
