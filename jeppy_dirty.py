@@ -4,7 +4,7 @@ import random
 import matplotlib.pyplot as plt
 from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis as QDA
 
-
+#F*kc det här, använd KFold från sklearn
 def folding(n_folds,y,X):
     data_size = np.size(y)
     n = int(data_size/n_folds)
