@@ -1,17 +1,17 @@
 import pandas as pd
 from sklearn.model_selection import KFold, StratifiedKFold
 from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis as QDA
+from sklearn.tree import DecisionTreeClassifier
 import numpy as np
 import random
 from sklearn.metrics import f1_score, accuracy_score, precision_score, recall_score, roc_auc_score
+from tabulate import tabulate
 
 from sklearn.model_selection import train_test_split
 from sklearn.model_selection import cross_val_score
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn import tree
-
-
 
 
 def optimusPrime(X):
@@ -55,6 +55,17 @@ def imbalance(f_imbalance):
             new_y = np.append(new_y,1)
     return new_y, new_X
     
+def print_metrics(vec_accuracy, vec_sensitivity, vec_f1, vec_precision, vec_roc_auc , title):
+    data = [['Sensitivity',np.mean(vec_sensitivity),np.std(vec_sensitivity)],
+        ['Accuracy',np.mean(vec_accuracy),np.std(vec_accuracy)],
+        ['F1-Score',np.mean(vec_f1),np.std(vec_f1)],
+        ['Precision',np.mean(vec_precision),np.std(vec_precision)],
+        ['ROC-AUC',np.mean(vec_roc_auc),np.std(vec_roc_auc)]]
+
+    print('\n')
+    print(title)
+    print (tabulate(data, headers=["Metric","Mean", "Standard Deviation"]))
+    print('\n')
 
 # Load UCI breast cancer dataset with column names and remove ID column
 
@@ -87,39 +98,43 @@ f_zeros = len(zeros)/len(y)
 f_ones = len(ones)/len(y)
 #print(f"%Ones: {f_ones},%Zeros: {f_zeros}")
 
-
 #Make more zeros/ones to prefered imbalance
-imbalance_frac = 0.99 #[0.5, 0.65, 0.75, 0.85, 0.95]
+imbalance_frac = 0.7 #[0.5, 0.65, 0.75, 0.85, 0.95]
 new_y, new_X = imbalance(imbalance_frac)
 
 f_zeros = len(new_X[new_y==0])/len(new_y)
 f_ones = len(new_X[new_y==1])/len(new_y)
 print(f"%Ones: {f_ones},%Zeros: {f_zeros}")
 
-#With or without K-fold?
-#Add standard deviation to mean
-avg_accuracy_score = 0
-avg_sensitivity_score = 0
-avg_f1_score = 0
-avg_precision_score = 0
-avg_roc_auc_score = 0
+
+#With or without K-Fold?
+#Try without stratisfy
+
 n_splits = 10
+vec_accuracy = np.zeros((n_splits,1))
+vec_sensitivity = np.zeros((n_splits,1))
+vec_f1 = np.zeros((n_splits,1))
+vec_precision = np.zeros((n_splits,1))
+vec_roc_auc = np.zeros((n_splits,1))
 
 clf = QDA()
 skf = StratifiedKFold(n_splits = n_splits, shuffle = True)
 
+
+i = 0
 for train_index, test_index in skf.split(new_X, new_y):
     X_train, X_test = new_X[train_index], new_X[test_index]
     y_train, y_test = new_y[train_index], new_y[test_index]
     clf.fit(X_train, y_train)
     y_pred = clf.predict(X_test)
-    avg_accuracy_score += accuracy_score(y_test, y_pred) / n_splits
-    avg_sensitivity_score += recall_score(y_test,y_pred) / n_splits
-    avg_f1_score += f1_score(y_test,y_pred) / n_splits 
-    avg_precision_score += precision_score(y_test,y_pred) / n_splits
-    avg_roc_auc_score += roc_auc_score(y_test,y_pred) / n_splits
-print(f"Accuracy: {avg_accuracy_score}, \nSensitivity: {avg_sensitivity_score}, \nPrecision: {avg_precision_score} \
-        \nF1-Score: {avg_f1_score}, \nROC-AUC-Score: {avg_roc_auc_score}")
+    vec_accuracy[i] = accuracy_score(y_test, y_pred) 
+    vec_sensitivity[i] = recall_score(y_test,y_pred) 
+    vec_f1[i] = f1_score(y_test,y_pred) 
+    vec_precision[i] = precision_score(y_test,y_pred) 
+    vec_roc_auc[i] = roc_auc_score(y_test,y_pred)
+    i += 1
+
+print_metrics(vec_accuracy, vec_sensitivity, vec_f1, vec_precision, vec_roc_auc , f'Imbalanced {imbalance_frac}')
 
 #sensitivity important, bc we want few False-Negatives
 
