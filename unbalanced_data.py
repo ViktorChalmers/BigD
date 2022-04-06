@@ -1,18 +1,13 @@
 import pandas as pd
 from sklearn.model_selection import KFold, StratifiedKFold
 from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis as QDA
-from sklearn.tree import DecisionTreeClassifier
+from sklearn.tree import DecisionTreeClassifier as Tree
 import numpy as np
 import random
 from sklearn.metrics import f1_score, accuracy_score, precision_score, recall_score, roc_auc_score
 from tabulate import tabulate
-
-from sklearn.model_selection import train_test_split
-from sklearn.model_selection import cross_val_score
-from sklearn.pipeline import make_pipeline
-from sklearn.preprocessing import StandardScaler
-from sklearn import tree
-
+from imblearn.over_sampling import SMOTE
+import matplotlib.pyplot as plt
 
 def optimusPrime(X):
     prime = np.zeros(np.shape(X))
@@ -62,10 +57,10 @@ def print_metrics(vec_accuracy, vec_sensitivity, vec_f1, vec_precision, vec_roc_
         ['Precision',np.mean(vec_precision),np.std(vec_precision)],
         ['ROC-AUC',np.mean(vec_roc_auc),np.std(vec_roc_auc)]]
 
-    print('\n')
+    print('')
     print(title)
     print (tabulate(data, headers=["Metric","Mean", "Standard Deviation"]))
-    print('\n')
+    print('')
 
 # Load UCI breast cancer dataset with column names and remove ID column
 
@@ -98,67 +93,134 @@ f_zeros = len(zeros)/len(y)
 f_ones = len(ones)/len(y)
 #print(f"%Ones: {f_ones},%Zeros: {f_zeros}")
 
-#Make more zeros/ones to prefered imbalance
-imbalance_frac = 0.7 #[0.5, 0.65, 0.75, 0.85, 0.95]
-new_y, new_X = imbalance(imbalance_frac)
 
-f_zeros = len(new_X[new_y==0])/len(new_y)
-f_ones = len(new_X[new_y==1])/len(new_y)
-print(f"%Ones: {f_ones},%Zeros: {f_zeros}")
+
+
 
 
 #With or without K-Fold?
 #Try without stratisfy
 
+imbalance_frac = [0.5, 0.65, 0.75, 0.85, 0.95]
+in_len = len(imbalance_frac)
+#clf = QDA()
+clf = Tree(random_state=0)
+clf_rescaled = Tree(random_state=0)
+clf_weighted = Tree(random_state=0,class_weight='balanced')
 n_splits = 10
-vec_accuracy = np.zeros((n_splits,1))
-vec_sensitivity = np.zeros((n_splits,1))
-vec_f1 = np.zeros((n_splits,1))
-vec_precision = np.zeros((n_splits,1))
-vec_roc_auc = np.zeros((n_splits,1))
+mult = 10
 
-clf = QDA()
-skf = StratifiedKFold(n_splits = n_splits, shuffle = True)
+vec_accuracy = np.zeros((mult*n_splits,in_len))
+vec_sensitivity = np.zeros((mult*n_splits,in_len))
+vec_f1 = np.zeros((mult*n_splits,in_len))
+vec_precision = np.zeros((mult*n_splits,in_len))
+vec_roc_auc = np.zeros((mult*n_splits,in_len))
+
+vec_accuracy_w = np.zeros((mult*n_splits,in_len))
+vec_sensitivity_w = np.zeros((mult*n_splits,in_len))
+vec_f1_w = np.zeros((mult*n_splits,in_len))
+vec_precision_w = np.zeros((mult*n_splits,in_len))
+vec_roc_auc_w = np.zeros((mult*n_splits,in_len))
+
+vec_accuracy_rs = np.zeros((mult*n_splits,in_len))
+vec_sensitivity_rs = np.zeros((mult*n_splits,in_len))
+vec_f1_rs = np.zeros((mult*n_splits,in_len))
+vec_precision_rs = np.zeros((mult*n_splits,in_len))
+vec_roc_auc_rs = np.zeros((mult*n_splits,in_len))
+
+for j in range(in_len):
+    #Make more zeros/ones to prefered imbalance
+    new_y, new_X = imbalance(imbalance_frac[j])
+
+    #f_zeros = len(new_X[new_y==0])/len(new_y)
+    #f_ones = len(new_X[new_y==1])/len(new_y)
+    #print(f"%Ones: {f_ones},%Zeros: {f_zeros}")
+
+    
+
+    #skf = StratifiedKFold(n_splits = n_splits, shuffle = True)
+    skf = KFold(n_splits = n_splits, shuffle = True)
+    sm = SMOTE(random_state=0)
+    
+    for m in range(mult):
+        i = m*n_splits
+        #for train_index, test_index in skf.split(new_X, new_y):
+        for train_index, test_index in skf.split(new_X):
+            X_train, X_test = new_X[train_index], new_X[test_index]
+            y_train, y_test = new_y[train_index], new_y[test_index]
+            X_res, y_res = sm.fit_resample(X_train, y_train)
+
+            clf.fit(X_train, y_train)
+            clf_weighted.fit(X_train, y_train)
+            clf_rescaled.fit(X_res,y_res)
+
+            y_pred = clf.predict(X_test)
+            y_pred_w = clf_weighted.predict(X_test)
+            y_pred_rs = clf_rescaled.predict(X_test)
+
+            vec_accuracy[i,j] = accuracy_score(y_test, y_pred) 
+            vec_sensitivity[i,j] = recall_score(y_test,y_pred) 
+            vec_f1[i,j] = f1_score(y_test,y_pred) 
+            vec_precision[i,j] = precision_score(y_test,y_pred) 
+            vec_roc_auc[i,j] = roc_auc_score(y_test,y_pred)
+
+            vec_accuracy_w[i,j] = accuracy_score(y_test, y_pred_w) 
+            vec_sensitivity_w[i,j] = recall_score(y_test,y_pred_w) 
+            vec_f1_w[i,j] = f1_score(y_test,y_pred_w) 
+            vec_precision_w[i,j] = precision_score(y_test,y_pred_w) 
+            vec_roc_auc_w[i,j] = roc_auc_score(y_test,y_pred_w)
+
+            vec_accuracy_rs[i,j] = accuracy_score(y_test, y_pred_rs) 
+            vec_sensitivity_rs[i,j] = recall_score(y_test,y_pred_rs) 
+            vec_f1_rs[i,j] = f1_score(y_test,y_pred_rs) 
+            vec_precision_rs[i,j] = precision_score(y_test,y_pred_rs) 
+            vec_roc_auc_rs[i,j] = roc_auc_score(y_test,y_pred_rs)
+
+            i += 1
+
+    #print_metrics(vec_accuracy, vec_sensitivity, vec_f1, vec_precision, vec_roc_auc , f'Imbalanced: {imbalance_frac[j]*100}% Zeros')
+    #print_metrics(vec_accuracy_w, vec_sensitivity_w, vec_f1_w, vec_precision_w, vec_roc_auc_w , f'Weighted')
+    #print_metrics(vec_accuracy_rs, vec_sensitivity_rs, vec_f1_rs, vec_precision_rs, vec_roc_auc_rs , f'SMOTE')
+
+plt.errorbar(imbalance_frac,np.mean(vec_accuracy,axis=0),np.std(vec_accuracy,axis=0),label='No Adjustment',capsize=5)
+plt.errorbar(imbalance_frac,np.mean(vec_accuracy_w,axis=0),np.std(vec_accuracy_w,axis=0), label = 'Weighted',capsize=5)
+plt.errorbar(imbalance_frac,np.mean(vec_accuracy_rs,axis=0),np.std(vec_accuracy_rs,axis=0), label = 'SMOTE',capsize=5)
+plt.legend()
+plt.xlabel('Ratio of Zeros')
+plt.ylabel('Accuracy Score')
 
 
-i = 0
-for train_index, test_index in skf.split(new_X, new_y):
-    X_train, X_test = new_X[train_index], new_X[test_index]
-    y_train, y_test = new_y[train_index], new_y[test_index]
-    clf.fit(X_train, y_train)
-    y_pred = clf.predict(X_test)
-    vec_accuracy[i] = accuracy_score(y_test, y_pred) 
-    vec_sensitivity[i] = recall_score(y_test,y_pred) 
-    vec_f1[i] = f1_score(y_test,y_pred) 
-    vec_precision[i] = precision_score(y_test,y_pred) 
-    vec_roc_auc[i] = roc_auc_score(y_test,y_pred)
-    i += 1
+plt.figure()
+plt.errorbar(imbalance_frac,np.mean(vec_sensitivity,axis=0),np.std(vec_sensitivity,axis=0),label='No Adjustment',capsize=5)
+plt.errorbar(imbalance_frac,np.mean(vec_sensitivity_w,axis=0),np.std(vec_sensitivity_w,axis=0), label = 'Weighted',capsize=5)
+plt.errorbar(imbalance_frac,np.mean(vec_sensitivity_rs,axis=0),np.std(vec_sensitivity_rs,axis=0), label = 'SMOTE',capsize=5)
+plt.legend()
+plt.xlabel('Ratio of Zeros')
+plt.ylabel('Sensitivity Score')
 
-print_metrics(vec_accuracy, vec_sensitivity, vec_f1, vec_precision, vec_roc_auc , f'Imbalanced {imbalance_frac}')
+plt.figure()
+plt.errorbar(imbalance_frac,np.mean(vec_f1,axis=0),np.std(vec_f1,axis=0),label='No Adjustment',capsize=5)
+plt.errorbar(imbalance_frac,np.mean(vec_f1_w,axis=0),np.std(vec_f1_w,axis=0), label = 'Weighted',capsize=5)
+plt.errorbar(imbalance_frac,np.mean(vec_f1_rs,axis=0),np.std(vec_f1_rs,axis=0), label = 'SMOTE',capsize=5)
+plt.legend()
+plt.xlabel('Ratio of Zeros')
+plt.ylabel('F1-Score')
 
+plt.figure()
+plt.errorbar(imbalance_frac,np.mean(vec_precision,axis=0),np.std(vec_precision,axis=0),label='No Adjustment',capsize=5)
+plt.errorbar(imbalance_frac,np.mean(vec_precision_w,axis=0),np.std(vec_precision_w,axis=0), label = 'Weighted',capsize=5)
+plt.errorbar(imbalance_frac,np.mean(vec_precision_rs,axis=0),np.std(vec_precision_rs,axis=0), label = 'SMOTE',capsize=5)
+plt.legend()
+plt.xlabel('Ratio of Zeros')
+plt.ylabel('Precision Score')
+
+plt.figure()
+plt.errorbar(imbalance_frac,np.mean(vec_roc_auc,axis=0),np.std(vec_roc_auc,axis=0),label='No Adjustment',capsize=5)
+plt.errorbar(imbalance_frac,np.mean(vec_roc_auc_w,axis=0),np.std(vec_roc_auc_w,axis=0), label = 'Weighted',capsize=5)
+plt.errorbar(imbalance_frac,np.mean(vec_roc_auc_rs,axis=0),np.std(vec_roc_auc_rs,axis=0), label = 'SMOTE',capsize=5)
+plt.legend()
+plt.xlabel('Ratio of Zeros')
+plt.ylabel('ROC-AUC Score')
+
+plt.show()
 #sensitivity important, bc we want few False-Negatives
-
-#a) No change
-#b) Weight observations
-#c) Up/Down sampling
-
-'''
-clf = QDA()
-
-new_X = optimusPrime(new_X)
-clf2 = tree.DecisionTreeClassifier().fit(new_X, new_y)
-
-pipeline = make_pipeline(StandardScaler().fit(new_X, new_y), clf2)
-
-predictions = pipeline.predict(new_X)
-f1 = f1_score(new_y, predictions, average=None)
-
-
-scores = cross_val_score(pipeline, new_X, new_y, cv=10, n_jobs=1)
-
-print('Cross Validation accuracy scores: %s' % scores)
-
-print('Cross Validation accuracy: %.3f +/- %.3f' % (np.mean(scores), np.std(scores)))
-
-print(f'\n F1 score {f1}')
-'''
