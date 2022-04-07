@@ -57,11 +57,11 @@ class2=[[rand.normal(loc=5, scale=2, size=None),rand.normal(loc=0, scale=1.0, si
 [class1, class2] = dicksnballs()
 
 '''
+
 class1 = [[rand.beta(0.1, 3),rand.beta(5, 3)] for _ in range(data_size)]
 class2 = [[rand.beta(5, 2),rand.beta(10, 10)] for _ in range(data_size)]
 '''
 
-#X = np.array(class1 + class2)
 class1=np.array(class1)
 class2=np.array(class2)
 X = np.append(class1,class2,axis = 0)
@@ -69,14 +69,7 @@ X = np.append(class1,class2,axis = 0)
 Y = np.zeros(len(X))
 for i in range(len(class1)):
     Y[i] = 1
-#X=optimusPrime(X)
-'''
-Observation of each class is drawn from a normal distribution (same as LDA).
-QDA assumes that each class has its own covariance matrix (different from LDA).
-'''
-print(Y)
 
-#for i in range(batch_size):
 clf = QDA().fit(X,Y)
 clf_cart = tree.DecisionTreeClassifier().fit(X, Y)
 pipeline_QDA = make_pipeline(StandardScaler().fit(X, Y), clf)
@@ -100,10 +93,10 @@ plt.plot(class1[:, 0], class1[:, 1], 'o', label="class1")
 plt.plot(class2[:, 0], class2[:, 1], '*', label="class2")
 plt.title('Cross Validation accuracy: QDA: %.3f +/- %.3f ' % (np.mean(scores_QDA), np.std(scores_QDA))+', Cart:  %.3f +/- %.3f' %(np.mean(scores_cart), np.std(scores_cart)))
 plt.legend()
-#plt.figure()
+
 plot_decision_boundary(clf_cart, X, Y, cmap='Paired_r')
 plt.title('CART accuracy:  %.3f +/- %.3f' %(np.mean(scores_cart), np.std(scores_cart)))
-#plt.figure()
+
 plot_decision_boundary(clf, X, Y, cmap='Paired_r')
 plt.title('Accuracy: QDA: %.3f +/- %.3f ' % (np.mean(scores_QDA), np.std(scores_QDA)))
 plt.show()
