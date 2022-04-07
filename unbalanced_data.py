@@ -17,15 +17,6 @@ def optimusPrime(X):
 
     return prime
 
-def split_data(X, y, n=10):
-    X_train = [None]*n
-    X_test = [None]*n
-    y_train = [None]*n
-    y_test = [None]*n
-
-    return X_train, X_test, y_train, y_test
-
-
 def imbalance(f_imbalance):
     #Only works for f_imbalance >= 0.5
     new_y = np.copy(y)
@@ -87,23 +78,9 @@ uci_bc_data = pd.read_csv(
 
 y = uci_bc_data.diagnosis.map({"B": 0, "M": 1}).to_numpy()
 X = uci_bc_data.drop("diagnosis", axis=1).to_numpy()
-ones = y[y==1]
-zeros = y[y==0]
-f_zeros = len(zeros)/len(y)
-f_ones = len(ones)/len(y)
-#print(f"%Ones: {f_ones},%Zeros: {f_zeros}")
-
-
-
-
-
-
-#With or without K-Fold?
-#Try without stratisfy
 
 imbalance_frac = [0.5, 0.65, 0.75, 0.85, 0.95]
 in_len = len(imbalance_frac)
-#clf = QDA()
 clf = Tree(random_state=0)
 clf_rescaled = Tree(random_state=0)
 clf_weighted = Tree(random_state=0,class_weight='balanced')
@@ -130,13 +107,7 @@ vec_roc_auc_rs = np.zeros((mult*n_splits,in_len))
 
 for j in range(in_len):
     #Make more zeros/ones to prefered imbalance
-    new_y, new_X = imbalance(imbalance_frac[j])
-
-    #f_zeros = len(new_X[new_y==0])/len(new_y)
-    #f_ones = len(new_X[new_y==1])/len(new_y)
-    #print(f"%Ones: {f_ones},%Zeros: {f_zeros}")
-
-    
+    new_y, new_X = imbalance(imbalance_frac[j])   
 
     #skf = StratifiedKFold(n_splits = n_splits, shuffle = True)
     skf = KFold(n_splits = n_splits, shuffle = True)

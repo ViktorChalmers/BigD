@@ -1,20 +1,8 @@
 import pandas as pd
 import numpy as np
-import random
 import matplotlib.pyplot as plt
 from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis as QDA
 
-#F*kc det här, använd KFold från sklearn
-def folding(n_folds,y,X):
-    data_size = np.size(y)
-    n = int(data_size/n_folds)
-    folds = [[],[]]
-
-    l = [i for i in range(0, data_size)] 
-    index_list = random.sample(range(len(l)), n)
-    for i in index_list:
-        folds[0].append(y[i])
-        folds[1].append(X[:,i]) 
 
 # Load UCI breast cancer dataset with column names and remove ID column
 uci_bc_data = pd.read_csv(
@@ -54,32 +42,11 @@ print(np.arange(0,29))
 #Corrolation?
 corrolation = np.corrcoef(X.T)
 plt.imshow(corrolation)
-'''
-plt.xticks(np.arange(0,31),[
-        "id_number", "radius_mean",
-        "texture_mean", "perimeter_mean", "area_mean",
-        "smoothness_mean", "compactness_mean",
-        "concavity_mean","concave_points_mean",
-        "symmetry_mean", "fractal_dimension_mean",
-        "radius_se", "texture_se", "perimeter_se",
-        "area_se", "smoothness_se", "compactness_se",
-        "concavity_se", "concave_points_se",
-        "symmetry_se", "fractal_dimension_se",
-        "radius_worst", "texture_worst",
-        "perimeter_worst", "area_worst",
-        "smoothness_worst", "compactness_worst",
-        "concavity_worst", "concave_points_worst",
-        "symmetry_worst", "fractal_dimension_worst"
-    ])
-'''
 plt.colorbar()
 #Relatively high, many corrolate between 1 and 0.5
 #Area and radius measures corrolate
 
 #preprocess
-clf = QDA()
-clf.fit(X, y)
-QDA()
-print(clf.predict([X[0,:]]))
+
 
 plt.show()
