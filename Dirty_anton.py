@@ -54,6 +54,7 @@ class1=[[rand.normal(loc=0, scale=2.0, size=None),rand.normal(loc=5, scale=2.0, 
 class2=[[rand.normal(loc=5, scale=2, size=None),rand.normal(loc=0, scale=1.0, size=None)] for _ in range(data_size)]
 '''
 
+
 [class1, class2] = dicksnballs()
 
 '''

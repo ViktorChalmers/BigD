@@ -1,23 +1,42 @@
 import pandas as pd
 from sklearn.model_selection import KFold, StratifiedKFold
 from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis as QDA
+from sklearn.tree import DecisionTreeClassifier
 import numpy as np
+import random
 from sklearn.metrics import f1_score, accuracy_score, precision_score, recall_score, roc_auc_score
 from tabulate import tabulate
 import matplotlib.pyplot as plt
-from sklearn.ensemble import RandomForestClassifier
+import numpy.random as rand
 from sklearn import tree
 
+def cartData(data_size = 1000):
+    ball1 = [[rand.normal(loc=0, scale=2.0, size=None), rand.normal(loc=10, scale=5.0, size=None)] for _ in
+              range(int(data_size/4))]
+    ball2 = [[rand.normal(loc=10, scale=2, size=None), rand.normal(loc=10, scale=5.0, size=None)] for _ in
+              range(int(data_size/4))]
+    blob1 = [[rand.normal(loc=5, scale=2.0, size=None), rand.normal(loc=5, scale=5.0, size=None)] for _ in
+              range(int(data_size/4))]
+    blob2 = [[rand.normal(loc=15, scale=2.0, size=None), rand.normal(loc=5, scale=5.0, size=None)] for _ in
+              range(int(data_size/4))]
+    class1 = np.array(ball1 + ball2)
+    class2 = np.array(blob1+blob2)
+    return [class1, class2]
 
-def optimusPrime(X):
-    prime = np.zeros(np.shape(X))
 
-    for i in range(len(X[0])):
-        prime[:, i] = (X[:, i] - np.mean(X[:, i])) / np.sqrt(np.std(X[:, i]))
+def plot_decision_boundary(clf, X, Y, cmap='Paired_r'):
+    step = 0.02
+    Xmin, Xmax = X[:, 0].min() - 10 * step, X[:, 0].max() + 10 * step
+    Ymin, Ymax = X[:, 1].min() - 10 * step, X[:, 1].max() + 10 * step
+    XX, YY = np.meshgrid(np.arange(Xmin, Xmax, step),
+                         np.arange(Ymin, Ymax, step))
+    pred = clf.predict(np.c_[XX.ravel(), YY.ravel()])
+    pred = pred.reshape(XX.shape)
 
-    return prime
-
-
+    plt.figure(figsize=(5,5))
+    plt.contourf(XX, YY, pred, cmap=cmap, alpha=0.25)
+    plt.contour(XX, YY, pred, colors='k', linewidths=0.7)
+    plt.scatter(X[:,0], X[:,1], c=Y, cmap=cmap, edgecolors='k')
 
 def print_metrics(vec_accuracy, vec_sensitivity, vec_f1, vec_precision, vec_roc_auc, title,plot = False):
     data = [['Sensitivity', np.mean(vec_sensitivity), np.std(vec_sensitivity)],
@@ -41,30 +60,17 @@ def print_metrics(vec_accuracy, vec_sensitivity, vec_f1, vec_precision, vec_roc_
         # hide y-axis
         ax.get_yaxis().set_visible(False)
 
-uci_bc_data = pd.read_csv(
-    "https://archive.ics.uci.edu/ml/machine-learning-databases/breast-cancer-wisconsin/wdbc.data",
-    sep=",",
-    header=None,
-    names=[
-        "id_number", "diagnosis", "radius_mean",
-        "texture_mean", "perimeter_mean", "area_mean",
-        "smoothness_mean", "compactness_mean",
-        "concavity_mean", "concave_points_mean",
-        "symmetry_mean", "fractal_dimension_mean",
-        "radius_se", "texture_se", "perimeter_se",
-        "area_se", "smoothness_se", "compactness_se",
-        "concavity_se", "concave_points_se",
-        "symmetry_se", "fractal_dimension_se",
-        "radius_worst", "texture_worst",
-        "perimeter_worst", "area_worst",
-        "smoothness_worst", "compactness_worst",
-        "concavity_worst", "concave_points_worst",
-        "symmetry_worst", "fractal_dimension_worst"
-    ], ).drop("id_number", axis=1)
+'''QDA data
+class1=[[rand.normal(loc=0, scale=2.0, size=None),rand.normal(loc=5, scale=2.0, size=None)] for _ in range(data_size)]
+class2=[[rand.normal(loc=5, scale=2, size=None),rand.normal(loc=0, scale=1.0, size=None)] for _ in range(data_size)]
+'''
 
-y = uci_bc_data.diagnosis.map({"B": 0, "M": 1}).to_numpy()
-X = uci_bc_data.drop("diagnosis", axis=1).to_numpy()
+class1,class2 = cartData()#Cart data
+X = np.append(class1,class2,axis = 0)
 
+y = np.zeros(len(X))
+for i in range(len(class1)):
+    y[i] = 1
 
 n_splits = 10
 vec_accuracy = np.zeros((n_splits, 1))
@@ -72,13 +78,11 @@ vec_sensitivity = np.zeros((n_splits, 1))
 vec_f1 = np.zeros((n_splits, 1))
 vec_precision = np.zeros((n_splits, 1))
 vec_roc_auc = np.zeros((n_splits, 1))
-clfList = [QDA(), RandomForestClassifier(max_depth=2, random_state=0), tree.DecisionTreeClassifier()]
+clfList = [QDA(), tree.DecisionTreeClassifier()]
 for clf in clfList:
     skf = StratifiedKFold(n_splits=n_splits, shuffle=True)
     fig = plt.figure(figsize=(10, 2))
     plt.title(clf)
-
-
     i = 0
     for train_index, test_index in skf.split(X, y):
         X_train, X_test = X[train_index], X[test_index]
@@ -93,4 +97,5 @@ for clf in clfList:
         i += 1
 
     print_metrics(vec_accuracy, vec_sensitivity, vec_f1, vec_precision, vec_roc_auc, f'Imbalanced ',plot=True)
+    plot_decision_boundary(clf, X, y, cmap='Paired_r')
 plt.show()
