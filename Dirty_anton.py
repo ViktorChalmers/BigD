@@ -17,44 +17,44 @@ def optimusPrime(X):
 
     return prime
 
-def dicksnballs(data_size = 1000):
+def cartData(data_size = 1000):
     ball1 = [[rand.normal(loc=0, scale=2.0, size=None), rand.normal(loc=10, scale=5.0, size=None)] for _ in
               range(int(data_size/4))]
     ball2 = [[rand.normal(loc=10, scale=2, size=None), rand.normal(loc=10, scale=5.0, size=None)] for _ in
               range(int(data_size/4))]
     midgard = [[rand.normal(loc=5, scale=2, size=None), rand.normal(loc=10, scale=2.0, size=None)] for _ in
               range(int(data_size/4))]
-    dick1 = [[rand.normal(loc=5, scale=2.0, size=None), rand.normal(loc=5, scale=5.0, size=None)] for _ in
+    blob1 = [[rand.normal(loc=5, scale=2.0, size=None), rand.normal(loc=5, scale=5.0, size=None)] for _ in
               range(int(data_size/4))]
-    dick2 = [[rand.normal(loc=15, scale=2.0, size=None), rand.normal(loc=5, scale=5.0, size=None)] for _ in
+    blob2 = [[rand.normal(loc=15, scale=2.0, size=None), rand.normal(loc=5, scale=5.0, size=None)] for _ in
               range(int(data_size/4))]
     class1 = np.array(ball1 + ball2)
-    class2 = np.array(dick1+dick2)
+    class2 = np.array(blob1+blob2)
     return [class1, class2]
 
-def plot_decision_boundary(clf, X, Y, cmap='Paired_r'):
-    h = 0.02
-    x_min, x_max = X[:,0].min() - 10*h, X[:,0].max() + 10*h
-    y_min, y_max = X[:,1].min() - 10*h, X[:,1].max() + 10*h
-    xx, yy = np.meshgrid(np.arange(x_min, x_max, h),
-                         np.arange(y_min, y_max, h))
-    Z = clf.predict(np.c_[xx.ravel(), yy.ravel()])
-    Z = Z.reshape(xx.shape)
+def plot_decision_boundary(clf, X, Y, cmap='Paired_r'): #found online
+    step = 0.02
+    Xmin, Xmax = X[:, 0].min() - 10 * step, X[:, 0].max() + 10 * step
+    Ymin, Ymax = X[:, 1].min() - 10 * step, X[:, 1].max() + 10 * step
+    XX, YY = np.meshgrid(np.arange(Xmin, Xmax, step),
+                         np.arange(Ymin, Ymax, step))
+    pred = clf.predict(np.c_[XX.ravel(), YY.ravel()])
+    pred = pred.reshape(XX.shape)
 
     plt.figure(figsize=(5,5))
-    plt.contourf(xx, yy, Z, cmap=cmap, alpha=0.25)
-    plt.contour(xx, yy, Z, colors='k', linewidths=0.7)
+    plt.contourf(XX, YY, pred, cmap=cmap, alpha=0.25)
+    plt.contour(XX, YY, pred, colors='k', linewidths=0.7)
     plt.scatter(X[:,0], X[:,1], c=Y, cmap=cmap, edgecolors='k');
 
-data_size=1000
+data_size=500
 
 
-'''
-class1=[[rand.normal(loc=0, scale=2.0, size=None),rand.normal(loc=5, scale=2.0, size=None)] for _ in range(data_size)]
+
+class1=[[rand.normal(loc=0, scale=5.0, size=None),rand.normal(loc=5, scale=2.0, size=None)] for _ in range(data_size)]
 class2=[[rand.normal(loc=5, scale=2, size=None),rand.normal(loc=0, scale=1.0, size=None)] for _ in range(data_size)]
-'''
 
-[class1, class2] = dicksnballs()
+
+#[class1, class2] = cartData()
 
 '''
 class1 = [[rand.beta(0.1, 3),rand.beta(5, 3)] for _ in range(data_size)]
