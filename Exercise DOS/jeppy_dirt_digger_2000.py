@@ -4,19 +4,43 @@ import pandas as pd
 from sklearn.preprocessing import normalize
 import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
+import seaborn as sns
+from sklearn.cluster import KMeans
+
+def optimise_k_means(data, max_k):
+    #Elbow plot, plotting the inertia. Which is a measure of how well the data was clustered by k-means
+    #lopar igenom flera olika klusterstorlekar
+    #identifying optimum number of clusters
+    means = []
+    inertias = []
+
+    for k in range(1, max_k):
+        kmeans = KMeans(n_clusters=k)
+        kmeans.fit(data)
+        means.append(k)
+        inertias.append(kmeans.inertia_)
+
+    fig = plt.subplots(figsize=(10, 5))
+    plt.plot(means, inertias, 'o-')
+    plt.xlabel("Number of Clusters")
+    plt.ylabel("Inertia")
+    plt.grid(True)
+    plt.show()
 
 data = pd.read_csv('C:/Users/Jesper/OneDrive/Dokument/GitHub/BigD/Exercise DOS/data.csv',index_col=0,low_memory=False)
  
+'''
 print(f"{data.head()} Head of data \n {data.shape[0]} datapoints, {data.shape[1]} features")
 print(f"{data.isnull().sum() / len(data) * 100}, -> we dont have any missing values in the data")
 print(data.dtypes)
-
 print("normalizing data")
+'''
+
 normalized = normalize(data)
 data_scaled = pd.DataFrame(normalized)
 variance = data_scaled.var()
 columns = data.columns
-print(variance.head())
+#print(variance.head())
 meanVariance = variance.mean()
 
 variable = []
@@ -25,7 +49,7 @@ for i in range(0,len(variance)):
     if variance[i] >=  meanVariance: #setting the threshold as mean variance
         variable.append(columns[i])
 
-print(f"Dropping {len(variance)-len(variable)} features < mean variance")
+#print(f"Dropping {len(variance)-len(variable)} features < mean variance")
 
 # creating a new dataframe using the above variables
 new_data = data[variable]
@@ -64,13 +88,57 @@ drop_n_norm = normalize(new_data)
 
 pca = PCA()
 pca.fit(drop_n_norm)
-print(f'Singular values ({len(pca.singular_values_)}): \n{pca.singular_values_}')
 
+#x_pca=pca.transform(drop_n_norm)
+#print(f'Singular values ({len(pca.singular_values_)}): \n{pca.singular_values_}')
+#print(f"Reducing dimensions from {drop_n_norm.shape} to {x_pca.shape}")
+
+cut_off = 0.02
+
+
+'''
+PC_values = np.arange(pca.n_components_) + 1
+plt.plot(PC_values, pca.explained_variance_ratio_, 'o-', linewidth=2)
+plt.axhline(cut_off,   color="red")
+plt.title('Scree Plot')
+plt.xlabel('Principal Component')
+plt.ylabel('Variance Explained')
+plt.show()
+'''
+
+
+chungus_len = len(pca.explained_variance_ratio_[pca.explained_variance_ratio_ > cut_off])
+print(chungus_len) #10
+
+pca = PCA(n_components=chungus_len)
+pca.fit(drop_n_norm)
+x_pca=pd.DataFrame(pca.transform(drop_n_norm))
+
+'''
 PC_values = np.arange(pca.n_components_) + 1
 plt.plot(PC_values, pca.explained_variance_ratio_, 'o-', linewidth=2)
 plt.title('Scree Plot')
 plt.xlabel('Principal Component')
 plt.ylabel('Variance Explained')
 plt.show()
+'''
 
-#Where 2 cut dimensions?
+#sns.pairplot(x_pca)
+#plt.show()
+
+#max_k = 15
+#optimise_k_means(x_pca, max_k)
+
+#5 clusters good
+kmeans = KMeans(n_clusters=5)
+kmeans.fit(x_pca) #or new data??
+
+
+#plt.scatter(x_pca.loc[:,0],x_pca.loc[:,1],c=kmeans.labels_)
+
+#hue??, palette
+
+x_pca['labels'] = kmeans.labels_
+
+sns.pairplot(x_pca ,hue='labels')
+plt.show()
