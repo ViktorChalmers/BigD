@@ -120,5 +120,5 @@ print(f"Reducing dimensions from {scaled_data.shape} to {x_pca.shape}")
 kmeans = KMeans(n_clusters=5)
 kmeans.fit(scaled_data)
 
-plt.scatter(x_pca[:,0],x_pca[:,1],c=kmeans.labels_)
+plt.scatter(x_pca[:, 0], x_pca[:, 1], c=kmeans.labels_)
 plt.show()
