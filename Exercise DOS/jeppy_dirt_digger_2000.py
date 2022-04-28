@@ -93,7 +93,7 @@ pca.fit(drop_n_norm)
 #print(f'Singular values ({len(pca.singular_values_)}): \n{pca.singular_values_}')
 #print(f"Reducing dimensions from {drop_n_norm.shape} to {x_pca.shape}")
 
-cut_off = 0.02
+cut_off = 0.025
 
 
 '''
@@ -108,7 +108,7 @@ plt.show()
 
 
 chungus_len = len(pca.explained_variance_ratio_[pca.explained_variance_ratio_ > cut_off])
-print(chungus_len) #10
+print(chungus_len) #10 or less (5) gives many nice results
 
 pca = PCA(n_components=chungus_len)
 pca.fit(drop_n_norm)
@@ -134,11 +134,9 @@ kmeans = KMeans(n_clusters=5)
 kmeans.fit(x_pca) #or new data??
 
 
-#plt.scatter(x_pca.loc[:,0],x_pca.loc[:,1],c=kmeans.labels_)
-
-#hue??, palette
-
 x_pca['labels'] = kmeans.labels_
 
 sns.pairplot(x_pca ,hue='labels')
 plt.show()
+
+#2 do: Compare with true labels
