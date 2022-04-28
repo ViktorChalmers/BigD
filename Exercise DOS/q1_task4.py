@@ -8,6 +8,7 @@ import seaborn as sns
 from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score, davies_bouldin_score, calinski_harabasz_score
 
+
 def plot_cluster_ind():
     #iterate over different cluster sizes and internal clusters
     cluster_range = range(2,8+1)
@@ -38,7 +39,7 @@ def plot_cluster_ind():
     plt.ylabel('Calinski-Harabasz Score')
     plt.show()
 
-'''
+
 data = pd.read_csv('C:/Users/Jesper/OneDrive/Dokument/GitHub/BigD/Exercise DOS/data.csv',index_col=0,low_memory=False)
 
 normalized = normalize(data)
@@ -74,15 +75,13 @@ x_pca=pd.DataFrame(pca.transform(drop_n_norm))
 #plots indiceses for different cluster counts
 #plot_cluster_ind()
 
-
-
-'''
 #Plot true labels
 a = pd.read_csv('C:/Users/Jesper/OneDrive/Dokument/GitHub/BigD/Exercise DOS/labels.csv',index_col=0)
-print(a)
-print(a.columns)
-#x_pca['labels'] = pd.read_csv('C:/Users/Jesper/OneDrive/Dokument/GitHub/BigD/Exercise DOS/labels.csv',index_col=0)
+a = a.to_numpy()
+a = a.flatten()
 
-#sns.pairplot(x_pca ,hue='labels')
-#plt.show()
+x_pca['labels'] = a
+
+sns.pairplot(x_pca ,hue='labels')
+plt.show()
 
