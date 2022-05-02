@@ -22,8 +22,8 @@ def visualiseCDF(Mat, label='', num_points=np.linspace(-0.1, 1, 100)):
     plt.legend()
     return F
 
-C=np.load('C.npy')
+C = np.load('C.npy')
 F = eCDF(C, 0.1)
-print(F)
-visualiseCDF(C, label=f'k=5')
-plt.show()
+print(C)
+#visualiseCDF(C, label=f'k=5')
+#plt.show()

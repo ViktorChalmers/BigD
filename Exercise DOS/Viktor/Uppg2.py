@@ -88,7 +88,7 @@ for i in range(len(folds)):
 #print(model[0].labels_)
 
 #print(model[0].predict(folds[1]))
-nrDataPoints = len(x_pca_shuffle)
+nrDataPoints = len(x_pca)
 M = [np.zeros([nrDataPoints, nrDataPoints]) for i in range(num_folds)]
 J = [np.zeros([nrDataPoints, nrDataPoints]) for i in range(num_folds)]
 
@@ -122,18 +122,16 @@ def findFold(fold, point, point2):
 
 
 for k in trange(num_folds):
-    modfit = model[k].predict(x_pca_shuffle)
+    modfit = model[k].predict(x_pca)
     for i in range(nrDataPoints):
         for j in range(nrDataPoints):
             if modfit[i] == modfit[j]:
                 M[k][i,j] = 1
-            if findFold(folds[k], x_pca_shuffle[i], x_pca_shuffle[j]):
+            if findFold(folds[k], x_pca[i], x_pca[j]):
                 J[k][i,j] = 1
 
-#pp = pprint.PrettyPrinter()
-#pp.pprint(sum(J))
-
 C = sum(M)/sum(J)
+print(C)
 np.save('C.npy', C)
 F = eCDF(C, 0.1)
 print(F)
