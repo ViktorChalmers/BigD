@@ -177,8 +177,8 @@ GMM = GaussianMixture(n_components=5)
 
 # hue??, palette
 
-x_pca['labels'] = kmeans.labels_
-#x_pca['labels'] = GMM.fit_predict(X=x_pca)
+#x_pca['labels'] = kmeans.labels_
+x_pca['labels'] = GMM.fit_predict(X=x_pca)
 
 
 sns.pairplot(x_pca, hue='labels')
