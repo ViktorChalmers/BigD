@@ -11,7 +11,7 @@ def eCDF(Mat, q):
     return F
 
 
-def visualiseCDF(Mat, label='', num_points=np.linspace(-0.1, 1, 100)):
+def visualiseCDF(Mat, label='', num_points=np.linspace(-0.1, 1.2, 100)):
     Mat_flatten = Mat.flatten()
     F = np.zeros(len(num_points))
     for i, q in enumerate(num_points):
