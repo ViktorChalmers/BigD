@@ -13,8 +13,8 @@ def optimise_GMM(data):
     n_components = np.arange(1, 21)
     models = [GaussianMixture(n_components=n).fit(data) for n in n_components]
 
-    plt.plot(n_components, [m.bic(data) for m in models], label='BIC')
-    plt.plot(n_components, [m.aic(data) for m in models], label='AIC')
+    plt.plot(n_components, [model.bic(data) for model in models], label='BIC')
+    plt.plot(n_components, [model.aic(data) for model in models], label='AIC')
     plt.legend(loc='best')
     plt.xlabel('n_components')
     plt.show()
@@ -177,8 +177,8 @@ GMM = GaussianMixture(n_components=5)
 
 # hue??, palette
 
-#x_pca['labels'] = kmeans.labels_
-x_pca['labels'] = GMM.fit_predict(X=x_pca)
+x_pca['labels'] = kmeans.labels_
+#x_pca['labels'] = GMM.fit_predict(X=x_pca)
 
 
 sns.pairplot(x_pca, hue='labels')
