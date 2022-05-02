@@ -6,6 +6,9 @@ import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
 import seaborn as sns
 from sklearn.cluster import KMeans
+from sklearn.metrics import silhouette_score
+#from sklearn.metrics import davies_bouldin_score
+#from jqmcvi import base #Dunn index
 
 def optimise_k_means(data, max_k):
     #Elbow plot, plotting the inertia. Which is a measure of how well the data was clustered by k-means
@@ -96,15 +99,16 @@ pca.fit(drop_n_norm)
 cut_off = 0.025
 
 
-'''
+
 PC_values = np.arange(pca.n_components_) + 1
 plt.plot(PC_values, pca.explained_variance_ratio_, 'o-', linewidth=2)
+#plt.plot(PC_values, pca.explained_variance_, 'o-', linewidth=2)
 plt.axhline(cut_off,   color="red")
 plt.title('Scree Plot')
 plt.xlabel('Principal Component')
-plt.ylabel('Variance Explained')
+plt.ylabel('Variance Explained Ratio')
 plt.show()
-'''
+
 
 
 chungus_len = len(pca.explained_variance_ratio_[pca.explained_variance_ratio_ > cut_off])
@@ -116,7 +120,7 @@ x_pca=pd.DataFrame(pca.transform(drop_n_norm))
 
 '''
 PC_values = np.arange(pca.n_components_) + 1
-plt.plot(PC_values, pca.explained_variance_ratio_, 'o-', linewidth=2)
+#plt.plot(PC_values, pca.explained_variance_ratio_, 'o-', linewidth=2)
 plt.title('Scree Plot')
 plt.xlabel('Principal Component')
 plt.ylabel('Variance Explained')
@@ -139,4 +143,6 @@ x_pca['labels'] = kmeans.labels_
 sns.pairplot(x_pca ,hue='labels')
 plt.show()
 
-#2 do: Compare with true labels
+#2 do: Compare with true label
+#sklearn.metrics.homogeneity_score compare with true data
+
