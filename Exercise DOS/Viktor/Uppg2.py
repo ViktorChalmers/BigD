@@ -72,10 +72,9 @@ folds += [x_pca_shuffle[num_folds-1*length:len(x_pca_shuffle)]]
 """
 x_pca=np.array(x_pca)
 for i in range(num_folds):
-    print(x_pca.shape[0])
     indicies = np.random.choice(x_pca.shape[0], size=600, replace=False)
     folds.append(x_pca[indicies,:])
-print(folds[0])
+
 k = 5
 
 model = [KMeans(n_clusters=k).fit(dataset) for dataset in folds]
@@ -118,7 +117,7 @@ def findFold(fold, point, point2):
 #                M[k][i,j] = 1
 #            if findFold(folds,x_pca_shuffle[i]) == findFold(folds,x_pca_shuffle[j]):
 #                J[k][i,j] = 1
-#print(J)
+
 
 
 for k in trange(num_folds):
@@ -126,9 +125,9 @@ for k in trange(num_folds):
     for i in range(nrDataPoints):
         for j in range(nrDataPoints):
             if modfit[i] == modfit[j]:
-                M[k][i,j] = 1
+                M[k][i, j] = 1
             if findFold(folds[k], x_pca[i], x_pca[j]):
-                J[k][i,j] = 1
+                J[k][i, j] = 1
 
 C = sum(M)/sum(J)
 print(C)
@@ -137,5 +136,5 @@ F = eCDF(C, 0.1)
 print(F)
 visualiseCDF(C, label=f'k=5')
 plt.show()
-#print(C)
+
 
