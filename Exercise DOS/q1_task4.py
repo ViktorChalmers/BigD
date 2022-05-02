@@ -5,9 +5,10 @@ from sklearn.preprocessing import normalize
 import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
 import seaborn as sns
-from sklearn.cluster import KMeans
+from sklearn.cluster import KMeans, Birch
+from sklearn.mixture import GaussianMixture
 from sklearn.metrics import silhouette_score, davies_bouldin_score, calinski_harabasz_score
-
+from sklearn.metrics import rand_score, adjusted_mutual_info_score
 
 def plot_cluster_ind():
     #iterate over different cluster sizes and internal clusters
@@ -17,28 +18,44 @@ def plot_cluster_ind():
     calinski_h = np.zeros(len(cluster_range))
 
     for j,i in enumerate(cluster_range):
-        kmeans = KMeans(n_clusters=i)
-        kmeans.fit(x_pca) 
-        silhouette[j] = silhouette_score(x_pca,kmeans.labels_)
-        davies_b[j] = davies_bouldin_score(x_pca,kmeans.labels_)
-        calinski_h[j] = calinski_harabasz_score(x_pca,kmeans.labels_)
+        #kmeans = KMeans(n_clusters=i)
+        #kmeans.fit(x_pca) 
+        #silhouette[j] = silhouette_score(x_pca,kmeans.labels_)
+        #davies_b[j] = davies_bouldin_score(x_pca,kmeans.labels_)
+        #calinski_h[j] = calinski_harabasz_score(x_pca,kmeans.labels_)
+
+        gmm = GaussianMixture(n_components=i)
+        gmm.fit(x_pca) 
+        pred = gmm.fit_predict(X=x_pca)
+        silhouette[j] = silhouette_score(x_pca,pred)
+        davies_b[j] = davies_bouldin_score(x_pca,pred)
+        calinski_h[j] = calinski_harabasz_score(x_pca,pred)
 
     plt.plot(cluster_range,silhouette)
-    plt.title('K-Means')
+    plt.title('GMM')
     plt.xlabel('Cluster Count')
     plt.ylabel('Silhouette Score')
     plt.figure()
     plt.plot(cluster_range,davies_b)
-    plt.title('K-Means')
+    plt.title('GMM')
     plt.xlabel('Cluster Count')
     plt.ylabel('Davies-Bouldin Score')
     plt.figure()
     plt.plot(cluster_range,calinski_h)
-    plt.title('K-Means')
+    plt.title('GMM')
     plt.xlabel('Cluster Count')
     plt.ylabel('Calinski-Harabasz Score')
     plt.show()
 
+def plot_true_labels():
+    a = pd.read_csv('C:/Users/Jesper/OneDrive/Dokument/GitHub/BigD/Exercise DOS/labels.csv',index_col=0)
+    a = a.to_numpy()
+    a = a.flatten()
+
+    x_pca['labels'] = a
+
+    sns.pairplot(x_pca ,hue='labels',x_vars=[0,1,2,3,4],y_vars=[0,1,2,3,4])
+    plt.show()
 
 data = pd.read_csv('C:/Users/Jesper/OneDrive/Dokument/GitHub/BigD/Exercise DOS/data.csv',index_col=0,low_memory=False)
 
@@ -76,12 +93,19 @@ x_pca=pd.DataFrame(pca.transform(drop_n_norm))
 #plot_cluster_ind()
 
 #Plot true labels
+#plot_true_labels()
+
 a = pd.read_csv('C:/Users/Jesper/OneDrive/Dokument/GitHub/BigD/Exercise DOS/labels.csv',index_col=0)
 a = a.to_numpy()
 a = a.flatten()
 
-x_pca['labels'] = a
+brc = Birch(threshold=0.01,branching_factor = 80,n_clusters=5)
+pred = brc.fit_predict(x_pca)
+x_pca['labels'] = brc.fit_predict(x_pca)
 
-sns.pairplot(x_pca ,hue='labels')
-plt.show()
+#Pair plot
+#sns.pairplot(x_pca ,hue='labels',x_vars=[0,1,2,3,4],y_vars=[0,1,2,3,4])
+#plt.show()
 
+print(f'Rand Index = {rand_score(a,pred)}')
+print(f'Mutual Information Score = {adjusted_mutual_info_score(a,pred)}')

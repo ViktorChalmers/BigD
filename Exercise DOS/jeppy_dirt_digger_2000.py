@@ -6,7 +6,9 @@ import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
 import seaborn as sns
 from sklearn.cluster import KMeans
-from sklearn.metrics import silhouette_score
+from sklearn.mixture import GaussianMixture
+from sklearn.metrics import rand_score, adjusted_mutual_info_score
+
 #from sklearn.metrics import davies_bouldin_score
 #from jqmcvi import base #Dunn index
 
@@ -52,7 +54,9 @@ for i in range(0,len(variance)):
     if variance[i] >=  meanVariance: #setting the threshold as mean variance
         variable.append(columns[i])
 
-#print(f"Dropping {len(variance)-len(variable)} features < mean variance")
+print(len(variance))
+print(len(variable))
+print(f"Dropping {len(variance)-len(variable)} features < mean variance")
 
 # creating a new dataframe using the above variables
 new_data = data[variable]
@@ -96,10 +100,10 @@ pca.fit(drop_n_norm)
 #print(f'Singular values ({len(pca.singular_values_)}): \n{pca.singular_values_}')
 #print(f"Reducing dimensions from {drop_n_norm.shape} to {x_pca.shape}")
 
-cut_off = 0.025
+#cut_off = 0.025
+cut_off = 0.01
 
-
-
+'''
 PC_values = np.arange(pca.n_components_) + 1
 plt.plot(PC_values, pca.explained_variance_ratio_, 'o-', linewidth=2)
 #plt.plot(PC_values, pca.explained_variance_, 'o-', linewidth=2)
@@ -108,13 +112,14 @@ plt.title('Scree Plot')
 plt.xlabel('Principal Component')
 plt.ylabel('Variance Explained Ratio')
 plt.show()
-
+'''
 
 
 chungus_len = len(pca.explained_variance_ratio_[pca.explained_variance_ratio_ > cut_off])
-print(chungus_len) #10 or less (5) gives many nice results
+print(chungus_len) #10 gives many nice results
 
 pca = PCA(n_components=chungus_len)
+#pca = PCA(n_components=5)
 pca.fit(drop_n_norm)
 x_pca=pd.DataFrame(pca.transform(drop_n_norm))
 
@@ -133,15 +138,24 @@ plt.show()
 #max_k = 15
 #optimise_k_means(x_pca, max_k)
 
+a = pd.read_csv('C:/Users/Jesper/OneDrive/Dokument/GitHub/BigD/Exercise DOS/labels.csv',index_col=0)
+a = a.to_numpy()
+a = a.flatten()
 #5 clusters good
 kmeans = KMeans(n_clusters=5)
-kmeans.fit(x_pca) #or new data??
-
-
+kmeans.fit(x_pca) 
 x_pca['labels'] = kmeans.labels_
+pred = kmeans.labels_
 
-sns.pairplot(x_pca ,hue='labels')
-plt.show()
+#gmm = GaussianMixture(n_components=5)
+#gmm.fit(x_pca) 
+#x_pca['labels'] = gmm.fit_predict(X=x_pca)
+
+print(f'Rand Index = {rand_score(a,pred)}')
+print(f'Mutual Information Score = {adjusted_mutual_info_score(a,pred)}')
+
+#sns.pairplot(x_pca ,hue='labels',x_vars=[0,1,2,3,4],y_vars=[0,1,2,3,4])
+#plt.show()
 
 #2 do: Compare with true label
 #sklearn.metrics.homogeneity_score compare with true data
