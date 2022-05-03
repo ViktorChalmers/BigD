@@ -24,25 +24,32 @@ def plot_cluster_ind():
         #davies_b[j] = davies_bouldin_score(x_pca,kmeans.labels_)
         #calinski_h[j] = calinski_harabasz_score(x_pca,kmeans.labels_)
 
-        gmm = GaussianMixture(n_components=i)
-        gmm.fit(x_pca) 
-        pred = gmm.fit_predict(X=x_pca)
+        #gmm = GaussianMixture(n_components=i)
+        #gmm.fit(x_pca) 
+        #pred = gmm.fit_predict(X=x_pca)
+        #silhouette[j] = silhouette_score(x_pca,pred)
+        #davies_b[j] = davies_bouldin_score(x_pca,pred)
+        #calinski_h[j] = calinski_harabasz_score(x_pca,pred)
+
+        brc = Birch(threshold=0.01,branching_factor = 80,n_clusters=i)
+        pred = brc.fit_predict(x_pca)
         silhouette[j] = silhouette_score(x_pca,pred)
         davies_b[j] = davies_bouldin_score(x_pca,pred)
         calinski_h[j] = calinski_harabasz_score(x_pca,pred)
 
+    title = 'BIRCH'
     plt.plot(cluster_range,silhouette)
-    plt.title('GMM')
+    plt.title(title)
     plt.xlabel('Cluster Count')
     plt.ylabel('Silhouette Score')
     plt.figure()
     plt.plot(cluster_range,davies_b)
-    plt.title('GMM')
+    plt.title(title)
     plt.xlabel('Cluster Count')
     plt.ylabel('Davies-Bouldin Score')
     plt.figure()
     plt.plot(cluster_range,calinski_h)
-    plt.title('GMM')
+    plt.title(title)
     plt.xlabel('Cluster Count')
     plt.ylabel('Calinski-Harabasz Score')
     plt.show()
@@ -90,7 +97,7 @@ pca.fit(drop_n_norm)
 x_pca=pd.DataFrame(pca.transform(drop_n_norm))
 
 #plots indiceses for different cluster counts
-#plot_cluster_ind()
+plot_cluster_ind()
 
 #Plot true labels
 #plot_true_labels()
@@ -104,8 +111,8 @@ pred = brc.fit_predict(x_pca)
 x_pca['labels'] = brc.fit_predict(x_pca)
 
 #Pair plot
-#sns.pairplot(x_pca ,hue='labels',x_vars=[0,1,2,3,4],y_vars=[0,1,2,3,4])
-#plt.show()
+sns.pairplot(x_pca ,hue='labels',x_vars=[0,1,2,3,4],y_vars=[0,1,2,3,4])
+plt.show()
 
 print(f'Rand Index = {rand_score(a,pred)}')
 print(f'Mutual Information Score = {adjusted_mutual_info_score(a,pred)}')
