@@ -12,6 +12,13 @@ from sklearn.utils import shuffle
 from eCDF import*
 import pprint
 
+
+def findFold(fold, point, point2):
+    ret = False
+    if point in fold and point2 in fold:
+        ret = True
+    return ret
+
 data = pd.read_pickle("new_data.pkl")
 
 '''
@@ -71,70 +78,66 @@ for i in range(num_folds-1):
 folds += [x_pca_shuffle[num_folds-1*length:len(x_pca_shuffle)]]
 """
 x_pca=np.array(x_pca)
-for i in range(num_folds):
-    indicies = np.random.choice(x_pca.shape[0], size=600, replace=False)
-    folds.append(x_pca[indicies,:])
+kluster_list = [3, 4, 5, 6, 7]
+C = []
+for k in kluster_list:
+    for i in range(num_folds):
+        indicies = np.random.choice(x_pca.shape[0], size=600, replace=False)
+        folds.append(x_pca[indicies,:])
 
-k = 5
+    model = [KMeans(n_clusters=k).fit(dataset) for dataset in folds]
 
-model = [KMeans(n_clusters=k).fit(dataset) for dataset in folds]
+    for i in range(len(folds)):
+        folds[i] = np.array(folds[i])
+    #plt.scatter(folds[0][:, 0], folds[0][:, 1], c=model[0].labels_)
+    #plt.show()
 
-for i in range(len(folds)):
-    folds[i] = np.array(folds[i])
-#plt.scatter(folds[0][:, 0], folds[0][:, 1], c=model[0].labels_)
-#plt.show()
+    #print(model[0].labels_)
 
-#print(model[0].labels_)
-
-#print(model[0].predict(folds[1]))
-nrDataPoints = len(x_pca)
-M = [np.zeros([nrDataPoints, nrDataPoints]) for i in range(num_folds)]
-J = [np.zeros([nrDataPoints, nrDataPoints]) for i in range(num_folds)]
+    #print(model[0].predict(folds[1]))
+    nrDataPoints = len(x_pca)
+    M = [np.zeros([nrDataPoints, nrDataPoints]) for i in range(num_folds)]
+    J = [np.zeros([nrDataPoints, nrDataPoints]) for i in range(num_folds)]
 
 
-x_pca_shuffle = np.array(x_pca_shuffle)
-i = 3
-j = 1
+    x_pca_shuffle = np.array(x_pca_shuffle)
+    i = 3
+    j = 1
 
-def findFold(fold, point, point2):
-    ret = False
-    if point in fold and point2 in fold:
-        ret = True
-    return ret
-    #for j in range(len(folds[k])):
-     #   if np.array_equal(folds[k][j], point):
-      #      for i in range(len(folds[k])):
-       #         if np.array_equal(folds[k][i],point2):
-        #            return ret
+        #for j in range(len(folds[k])):
+         #   if np.array_equal(folds[k][j], point):
+          #      for i in range(len(folds[k])):
+           #         if np.array_equal(folds[k][i],point2):
+            #            return ret
 
-#print(findFold(folds,x_pca_shuffle[10]))
+    #print(findFold(folds,x_pca_shuffle[10]))
 
-#for k in range(num_folds):
-#    modfit = model[k].predict(x_pca_shuffle)
-#    for i in range(801):
-#        for j in range(801):
-#            if modfit[i] == modfit[j]:
-#                M[k][i,j] = 1
-#            if findFold(folds,x_pca_shuffle[i]) == findFold(folds,x_pca_shuffle[j]):
-#                J[k][i,j] = 1
+    #for k in range(num_folds):
+    #    modfit = model[k].predict(x_pca_shuffle)
+    #    for i in range(801):
+    #        for j in range(801):
+    #            if modfit[i] == modfit[j]:
+    #                M[k][i,j] = 1
+    #            if findFold(folds,x_pca_shuffle[i]) == findFold(folds,x_pca_shuffle[j]):
+    #                J[k][i,j] = 1
 
 
 
-for k in trange(num_folds):
-    modfit = model[k].predict(x_pca)
-    for i in range(nrDataPoints):
-        for j in range(nrDataPoints):
-            if modfit[i] == modfit[j]:
-                M[k][i, j] = 1
-            if findFold(folds[k], x_pca[i], x_pca[j]):
-                J[k][i, j] = 1
+    for k in trange(num_folds):
+        modfit = model[k].predict(x_pca)
+        for i in range(nrDataPoints):
+            for j in range(nrDataPoints):
+                if modfit[i] == modfit[j]:
+                    M[k][i, j] = 1
+                if findFold(folds[k], x_pca[i], x_pca[j]):
+                    J[k][i, j] = 1
 
-C = sum(M)/sum(J)
-print(C)
+    C.append(sum(M)/sum(J))
+
 np.save('C.npy', C)
-F = eCDF(C, 0.1)
-print(F)
-visualiseCDF(C, label=f'k=5')
+
+for ind, Mat in enumerate(C):
+    visualiseCDF(Mat, label=f'k={kluster_list[ind]}')
 plt.show()
 
 
