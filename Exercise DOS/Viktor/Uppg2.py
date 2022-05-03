@@ -6,7 +6,7 @@ from sklearn.preprocessing import normalize
 import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
 import seaborn as sns
-from sklearn.cluster import KMeans
+from sklearn.cluster import KMeans, Birch
 #from skstab import StadionEstimator
 from sklearn.utils import shuffle
 from eCDF import*
@@ -68,7 +68,7 @@ x_pca = pd.DataFrame(pca.transform(drop_n_norm))
 #print(len(x_pca))
 
 x_pca_shuffle = shuffle(x_pca)
-num_folds = 50
+num_folds = 30
 length = int(len(x_pca_shuffle)/num_folds) #length of each fold
 folds = []
 #x_pca_shuffle = np.array(x_pca_shuffle)
@@ -85,7 +85,8 @@ for k in kluster_list:
         indicies = np.random.choice(x_pca.shape[0], size=600, replace=False)
         folds.append(x_pca[indicies,:])
 
-    model = [KMeans(n_clusters=k).fit(dataset) for dataset in folds]
+    #model = [KMeans(n_clusters=k).fit(dataset) for dataset in folds]
+    model = [Birch(threshold=0.01,branching_factor = 80,n_clusters=k).fit(dataset) for dataset in folds]
 
     for i in range(len(folds)):
         folds[i] = np.array(folds[i])
@@ -127,16 +128,17 @@ for k in kluster_list:
         modfit = model[k].predict(x_pca)
         for i in range(nrDataPoints):
             for j in range(nrDataPoints):
-                if modfit[i] == modfit[j]:
-                    M[k][i, j] = 1
                 if findFold(folds[k], x_pca[i], x_pca[j]):
                     J[k][i, j] = 1
+                    if modfit[i] == modfit[j]:
+                        M[k][i, j] = 1
 
     C.append(sum(M)/sum(J))
+    print(C)
 
-np.save('C.npy', C)
 
 for ind, Mat in enumerate(C):
+    np.save(f'Birch, k={kluster_list[ind]}.npy', Mat)
     visualiseCDF(Mat, label=f'k={kluster_list[ind]}')
 plt.show()
 
