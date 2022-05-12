@@ -25,4 +25,4 @@ clf.fit(new_data, label)
 
 feature_importance = abs(clf.coef_[0])
 top_5_ching = [x[0] for x in sorted(enumerate(feature_importance), key=lambda x: x[1])[-5:]]
-print(top_5_ching)
+print(f'Index for top 5 features = {top_5_ching}')
