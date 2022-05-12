@@ -20,6 +20,7 @@ new_data = selectK.fit_transform(data, label)
 print(new_data)
 
 C_list = np.logspace(-4, 4, 30)
+#TODO split data into validation and training, implement LogisticRegressionCV
 clf = LogisticRegression(multi_class='ovr', solver='liblinear', intercept_scaling=10000, C=C_list[10])
 clf.fit(new_data, label)
 
