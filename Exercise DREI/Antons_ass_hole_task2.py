@@ -14,7 +14,13 @@ except:
     data.to_pickle("data.pkl")
 
 label = pd.read_csv("TCGA-PANCAN-HiSeq-801x20531/labels.csv", index_col=0)
+
 selectK = SelectKBest(score_func=f_classif, k=200)
 new_data = selectK.fit_transform(data, label)
-print(np.shape(new_data))
-print(np.shape(data))
+print(new_data)
+clf = LogisticRegression(multi_class='ovr', solver='liblinear', intercept_scaling=10000)
+clf.fit(new_data, label)
+
+feature_importance = abs(clf.coef_[0])
+top_5_ching = [x[0] for x in sorted(enumerate(feature_importance), key=lambda x: x[1])[-5:]]
+print(top_5_ching)
