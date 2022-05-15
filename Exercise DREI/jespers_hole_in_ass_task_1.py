@@ -79,9 +79,11 @@ def plot_error(er_matrix, title, isError):
     for x in spar_range:
         for y in n_range:
             if isError:
-                plt.gca().text(y-0.3, x, f'{int(np.var(er_matrix[:,x,y]))}', style='italic')
+                plt.gca().text(y-0.3, x-0.1, f'{int(mean_em[x,y])}', style='italic')
+                plt.gca().text(y-0.3, x+0.1, f'({int(np.std(er_matrix[:,x,y]))})', style='italic')
             else:
-                plt.gca().text(y-0.3, x, f'{np.var(er_matrix[:,x,y]):.4f}', style='italic')
+                plt.gca().text(y-0.3, x-0.1, f'{mean_em[x,y]:.3f}', style='italic')
+                plt.gca().text(y-0.3, x+0.1, f'({np.std(er_matrix[:,x,y]):.4f})', style='italic')
     plt.gca().set_yticklabels(sparsity)
     plt.gca().set_xticklabels(n)
     plt.ylabel('Sparsity')
@@ -102,15 +104,19 @@ def plot_error(er_matrix, title, isError):
 rng = Generator(PCG64())
 p = 750
 n = [100, 200, 500, 750] 
+#n = [100,200]
 n_test = 500
 sparsity = [0.75, 0.9, 0.95, 0.99]
+#sparsity = [0.75,0.9]
 repeat = 5
 n_folds = 5
 Metrics = namedtuple('Metrics','sensitivity specificity')
 
+#scatter plt on sens n spec
+
 #Compare:
 #1. MSE on training and test data
-#2. Sensitivity and Specificity on dataset ???
+#2. Sensitivity and Specificity on dataset train
 #Make heat map plot? Very cool
 
 mse_min_train = np.zeros((repeat,len(sparsity),len(n)))
