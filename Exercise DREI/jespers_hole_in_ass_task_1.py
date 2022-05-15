@@ -3,6 +3,7 @@ from numpy.random import Generator, PCG64
 from sklearn.linear_model import LassoCV, Lasso
 from sklearn.metrics import confusion_matrix, mean_squared_error
 from collections import namedtuple
+import matplotlib.pyplot as plt 
 
 def simulate_data(n, p, rng, *,sparsity=0.95, SNR=2.0, beta_scale=5.0):
     """Simulate data for Project 3, Part 1.
@@ -67,6 +68,28 @@ def get_metrics(true, pred):
     specificity = tn / (tn + fp)
     return Metrics(sensitivity, specificity)
 
+def plot_error(er_matrix, title, isError):
+    mean_em = np.mean(er_matrix,axis=0)
+    plt.imshow(mean_em,cmap='cool')
+    plt.colorbar()
+    spar_range = range(mean_em.shape[0])
+    n_range = range(mean_em.shape[1])
+    plt.gca().set_yticks(spar_range)
+    plt.gca().set_xticks(n_range)
+    for x in spar_range:
+        for y in n_range:
+            if isError:
+                plt.gca().text(y-0.3, x, f'{int(np.var(er_matrix[:,x,y]))}', style='italic')
+            else:
+                plt.gca().text(y-0.3, x, f'{np.var(er_matrix[:,x,y]):.4f}', style='italic')
+    plt.gca().set_yticklabels(sparsity)
+    plt.gca().set_xticklabels(n)
+    plt.ylabel('Sparsity')
+    plt.xlabel('Samples')
+    plt.title(title)
+    plt.show()
+
+
 
 ###############     MAIN    ###############
 
@@ -78,7 +101,7 @@ def get_metrics(true, pred):
 #beta_scale = 5 or 10
 rng = Generator(PCG64())
 p = 750
-n = [100, 200, 400, 750]
+n = [100, 200, 500, 750] 
 n_test = 500
 sparsity = [0.75, 0.9, 0.95, 0.99]
 repeat = 5
@@ -90,34 +113,55 @@ Metrics = namedtuple('Metrics','sensitivity specificity')
 #2. Sensitivity and Specificity on dataset ???
 #Make heat map plot? Very cool
 
+mse_min_train = np.zeros((repeat,len(sparsity),len(n)))
+mse_min_test = np.zeros((repeat,len(sparsity),len(n)))
+mse_lse_train = np.zeros((repeat,len(sparsity),len(n)))
+mse_lse_test = np.zeros((repeat,len(sparsity),len(n)))
 
-#for i, samples in enumerate(n):
-    #for j, spar in enumerate(sparsity):
-        #for k in range(repeat):
-X_train, y_train, beta_train = simulate_data(n = n[0], p = p, rng = rng, sparsity = sparsity[0])
-X_test, y_test, beta_test = simulate_data(n = n_test, p = p, rng = rng, sparsity = sparsity[0])
-model_min = LassoCV(cv = n_folds).fit(X_train, y_train)   #Gives the best prediction quality
-alpha_min = model_min.alpha_
-alpha_lse = get_alpha_lse(lasso = model_min, n_folds = n_folds)
-model_lse = Lasso(alpha = alpha_lse).fit(X_train,y_train)
+sens_min = np.zeros((repeat,len(sparsity),len(n)))
+spec_min = np.zeros((repeat,len(sparsity),len(n)))
+sens_lse = np.zeros((repeat,len(sparsity),len(n)))
+spec_lse = np.zeros((repeat,len(sparsity),len(n)))
 
-#print(model_min.mse_path_)
-#print(model_lse.mse_path_)
+for i, samples in enumerate(n):
+    for j, spar in enumerate(sparsity):
+        print(f'Sample = {samples} and Sparsity = {spar}')
+        for k in range(repeat):
+            X_train, y_train, beta_train = simulate_data(n = samples, p = p, rng = rng, sparsity = spar)
+            X_test, y_test, beta_test = simulate_data(n = n_test, p = p, rng = rng, sparsity = spar)
+            model_min = LassoCV(cv = n_folds).fit(X_train, y_train)   #Gives the best prediction quality
+            alpha_min = model_min.alpha_
+            alpha_lse = get_alpha_lse(lasso = model_min, n_folds = n_folds)
+            model_lse = Lasso(alpha = alpha_lse).fit(X_train,y_train)
 
-#Get MSE
-#Use LassoCV to get error from mse_path??
-mse_min_train = mean_squared_error(y_train, model_min.predict(X_train))
-mse_min_test = mean_squared_error(y_test, model_min.predict(X_test))
-mse_lse_train = mean_squared_error(y_train, model_lse.predict(X_train))
-mse_lse_test = mean_squared_error(y_test, model_lse.predict(X_test))
+            #Get MSE
+            #Use LassoCV to get error from .mse_path_??
+            mse_min_train[k,j,i] = mean_squared_error(y_train, model_min.predict(X_train))
+            mse_min_test[k,j,i] = mean_squared_error(y_test, model_min.predict(X_test))
+            mse_lse_train[k,j,i] = mean_squared_error(y_train, model_lse.predict(X_train))
+            mse_lse_test[k,j,i] = mean_squared_error(y_test, model_lse.predict(X_test))
 
-#print([mse_min_train, mse_min_test, mse_lse_train, mse_lse_test])
+            #Get preformance measures
+            #Only for test data??
+            beta_train = make_bin(beta_train)
+            beta_min = make_bin(model_min.coef_)
+            beta_lse = make_bin(model_lse.coef_)
 
-#Get preformance measures
-beta_train = make_bin(beta_train)
-beta_min = make_bin(model_min.coef_)
-beta_lse = make_bin(model_lse.coef_)
+            min_met = get_metrics(beta_train,beta_min)
+            lse_met = get_metrics(beta_train,beta_lse)
+     
+            sens_min[k,j,i] = min_met.sensitivity
+            spec_min[k,j,i] = min_met.specificity
+            sens_lse[k,j,i] = lse_met.sensitivity
+            spec_lse[k,j,i] = lse_met.specificity
 
-train_min_met = get_metrics(beta_train,beta_min)
-print(train_min_met.sensitivity)
-print(train_min_met.specificity)
+
+plot_error(mse_min_train,r'Train MSE of $\lambda_{min}$',True)
+plot_error(mse_min_test,r'Test MSE of $\lambda_{min}$',True)
+plot_error(mse_lse_train,r'Train MSE of $\lambda_{lse}$',True)
+plot_error(mse_lse_test,r'Test MSE of $\lambda_{lse}$',True)
+
+plot_error(sens_min,r'Sensitivity of $\lambda_{min}$',False)
+plot_error(spec_min,r'Specificity of $\lambda_{min}$',False)
+plot_error(sens_lse,r'Sensitivity of $\lambda_{lse}$',False)
+plot_error(spec_lse,r'Specificity of $\lambda_{lse}$',False)
