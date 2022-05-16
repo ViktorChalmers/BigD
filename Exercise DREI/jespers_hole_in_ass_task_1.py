@@ -1,8 +1,10 @@
+from turtle import color
 import numpy as np
 from numpy.random import Generator, PCG64
 from sklearn.linear_model import LassoCV, Lasso
 from sklearn.metrics import confusion_matrix, mean_squared_error
 from collections import namedtuple
+import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt 
 
 def simulate_data(n, p, rng, *,sparsity=0.95, SNR=2.0, beta_scale=5.0):
@@ -91,7 +93,29 @@ def plot_error(er_matrix, title, isError):
     plt.title(title)
     plt.show()
 
+def plot_sctr(sens,spec,title):
+    mean_sens = np.mean(sens,axis=0).flatten()
+    mean_spec = np.mean(spec,axis=0).flatten()
+    #print(np.mean(sens,axis=0))
+    #print(mean_sens)
+    markers = ["." , "," , "o" , "v" ]  #Must match sparsity size
+    colors = ['r','g' ,'b','c']  #Must match n size
+    for i,co in enumerate(colors):
+        for j,mi in enumerate(markers):
+            indx = i+j*len(colors)
+            plt.scatter(mean_sens[indx],mean_spec[indx],marker=mi,color=co)
+    for i,col in enumerate(colors):
+        plt.scatter([],[],color=col,label=f'Sample = {n[i]}')
+    for i,mi in enumerate(markers):
+        plt.scatter([],[],color='k',marker=mi,label=f'Sparsity = {sparsity[i]}')
+    plt.legend()
+    #plt.gca().legend(handles=[red_patch,green_patch])
+    plt.xlabel('Sensitivity')
+    plt.ylabel('Specificity')
+    plt.title(title)
+    plt.show()
 
+    
 
 ###############     MAIN    ###############
 
@@ -161,7 +185,6 @@ for i, samples in enumerate(n):
             sens_lse[k,j,i] = lse_met.sensitivity
             spec_lse[k,j,i] = lse_met.specificity
 
-
 plot_error(mse_min_train,r'Train MSE of $\lambda_{min}$',True)
 plot_error(mse_min_test,r'Test MSE of $\lambda_{min}$',True)
 plot_error(mse_lse_train,r'Train MSE of $\lambda_{lse}$',True)
@@ -171,3 +194,6 @@ plot_error(sens_min,r'Sensitivity of $\lambda_{min}$',False)
 plot_error(spec_min,r'Specificity of $\lambda_{min}$',False)
 plot_error(sens_lse,r'Sensitivity of $\lambda_{lse}$',False)
 plot_error(spec_lse,r'Specificity of $\lambda_{lse}$',False)
+
+plot_sctr(sens_min,spec_min,r'Metric scatter of $\lambda_{min}$')
+plot_sctr(sens_lse,spec_lse,r'Metric scatter of $\lambda_{lse}$')
