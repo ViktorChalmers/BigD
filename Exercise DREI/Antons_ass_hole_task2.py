@@ -3,6 +3,7 @@ import pandas as pd
 from sklearn.feature_selection import SelectKBest, f_classif
 from sklearn.linear_model import LogisticRegression
 import numpy as np
+import matplotlib.pyplot as plt
 
 
 try:
@@ -27,3 +28,10 @@ clf.fit(new_data, label)
 feature_importance = abs(clf.coef_[0])
 top_5_ching = [x[0] for x in sorted(enumerate(feature_importance), key=lambda x: x[1])[-5:]]
 print(f'Index for top 5 features = {top_5_ching}')
+feature_select_list = np.zeros(200)
+for index in top_5_ching:
+    feature_select_list[index] += 1
+
+plt.bar(np.linspace(1,200, 200), feature_select_list, width=5)
+plt.show()
+
