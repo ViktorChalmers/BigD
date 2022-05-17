@@ -45,10 +45,10 @@ print(f'score = {score}\nf1 score = {score_f1}')
 C = C_list[6]
 '''
 feature_select_list = np.zeros([5, 200])
-
+print(np.shape(new_data))
 for i in trange(50):
     #x_train, x_test, y_train, y_test = train_test_split(new_data, label, test_size=0.05, random_state=8)
-    x_train, y_train = resample(new_data, label)
+    x_train, y_train = resample(new_data, label, n_samples=round(0.95*np.shape(new_data)[0]))
     #clf = LogisticRegression(multi_class='ovr', solver='liblinear', intercept_scaling=10000, C=C, penalty='l1')
     clf = LogisticRegressionCV(multi_class='ovr', solver='liblinear', intercept_scaling=10000, Cs=C_list, penalty='l1',
                                cv=5)
