@@ -5,6 +5,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.linear_model import LogisticRegressionCV
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import f1_score
+from sklearn.utils import resample
 import numpy as np
 import matplotlib.pyplot as plt
 from tqdm import trange
@@ -46,8 +47,8 @@ C = C_list[6]
 feature_select_list = np.zeros([5, 200])
 
 for i in trange(50):
-    x_train, x_test, y_train, y_test = train_test_split(new_data, label, test_size=0.05, random_state=8)
-
+    #x_train, x_test, y_train, y_test = train_test_split(new_data, label, test_size=0.05, random_state=8)
+    x_train, y_train = resample(new_data, label)
     #clf = LogisticRegression(multi_class='ovr', solver='liblinear', intercept_scaling=10000, C=C, penalty='l1')
     clf = LogisticRegressionCV(multi_class='ovr', solver='liblinear', intercept_scaling=10000, Cs=C_list, penalty='l1',
                                cv=5)
