@@ -69,9 +69,8 @@ C = clf.C_
 '''
 feature_select_list = np.zeros([5, 200])
 num_folds = 5
-for i in trange(50):
-    #x_train, x_test, y_train, y_test = train_test_split(new_data, label, test_size=0.05, random_state=8)
-    x_train, y_train = resample(new_data, label, n_samples=round(0.95*np.shape(new_data)[1]))
+for i in trange(100):
+    x_train, y_train = resample(new_data, label, n_samples=round(0.95*np.shape(new_data)[0]))
     #clf = LogisticRegression(multi_class='ovr', solver='liblinear', intercept_scaling=10000, C=C, penalty='l1')
     clf = LogisticRegressionCV(multi_class='ovr', solver='liblinear', intercept_scaling=10000, Cs=C_list, penalty='l1',
                                cv=num_folds, scoring='f1')
@@ -79,6 +78,7 @@ for i in trange(50):
 
     C1 = get_C1(clf, num_folds)
     print(f'C = {clf.C_}, C1 = {C1}')
+
     for j in range(5):
         feature_importance = abs(clf.coef_[j])
         top_5_ching = [x[0] for x in enumerate(feature_importance) if x[1] > 0]
@@ -88,17 +88,19 @@ for i in trange(50):
 
 
 def plot_viktors_dick(feature_list, num):
+    classes = clf.classes_
     plt.figure()
     plt.bar(np.linspace(1, 200, 200), feature_list, width=0.5)
     top_5_largest = [x[0] for x in sorted(enumerate(feature_list), key=lambda x: x[1])[-5:]]
-    plt.xticks(top_5_largest, top_5_largest)
     plt.savefig('class ' + str(num))
+    plt.title(classes[num]+'\nTop 5 features: '+str(top_5_largest))
+    plt.xlabel('Feature')
+    plt.ylabel('Count')
+
 
 for k in range(5):
     plot_viktors_dick(feature_select_list[k], k)
 
-#plt.ylabel('Precentage %')
-#plt.xlabel('Feature #')
 plt.show()
 
 
