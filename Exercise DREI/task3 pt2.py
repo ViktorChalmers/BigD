@@ -11,6 +11,20 @@ from collections import namedtuple
 
 Metrics = namedtuple('Metrics','sensitivity specificity')
 
+def plott_hist(beta_list, title):
+    plt.figure()
+    plt.bar(np.linspace(1, p, p), beta_list, width=0.5)
+    plt.xlabel('Feature #')
+    plt.ylabel('Count')
+    plt.title(r'Count-Statistic of $\lambda_{lse}$, threshold = '+str(round(threshold*100/M))+'% '+str(title))
+
+
+def threshold_fun(beta_list, threshold):
+    for ind, count in enumerate(beta_list):
+        if count < threshold:
+            beta_list[ind] = 0
+    return beta_list
+
 def get_metrics(true, pred):
     tn, fp, fn, tp = confusion_matrix(true, pred).ravel()
     sensitivity = tp / (tp + fn)
@@ -102,6 +116,8 @@ beta = make_bin(beta)
 
 beta_min = np.zeros(p)
 beta_lse = np.zeros(p)
+beta_lse08 = np.zeros(p)
+beta_lse12 = np.zeros(p)
 
 # Change one parameter at a time
 for boot in trange(M):
@@ -112,29 +128,33 @@ for boot in trange(M):
     model_min = LassoCV(cv=n_folds).fit(X_boot, y_boot)  # Gives the best prediction quality
     alpha_min = model_min.alpha_
     alpha_lse = get_alpha_lse(lasso=model_min, n_folds=n_folds)  # Gives the best feature selection
+
+    model_lse08 = Lasso(alpha=alpha_lse * 0.5).fit(X_boot, y_boot)
     model_lse = Lasso(alpha=alpha_lse).fit(X_boot, y_boot)
+    model_lse12 = Lasso(alpha=alpha_lse * 2).fit(X_boot, y_boot)
 
     beta_min += make_bin(model_min.coef_)
+    beta_lse08 += make_bin(model_lse08.coef_)
     beta_lse += make_bin(model_lse.coef_)
+    beta_lse12 += make_bin(model_lse12.coef_)
 
-threshold = 0.8*M
-for ind, count in enumerate(beta_min):
-    if count<threshold:
-        beta_min[ind] = 0
-for ind, count in enumerate(beta_lse):
-    if count<threshold:
-        beta_lse[ind] = 0
+threshold = 0.9*M
+beta_lse = threshold_fun(beta_lse, threshold)
+beta_lse08 = threshold_fun(beta_lse08, threshold)
+beta_lse12 = threshold_fun(beta_lse12, threshold)
 
+plott_hist(beta_lse08, '08')
+plott_hist(beta_lse, '1')
+plott_hist(beta_lse12, '1.2')
+'''
 plt.figure()
 plt.bar(np.linspace(1, p, p), beta_min, width=0.5)
 plt.xlabel('Feature #')
 plt.ylabel('Count')
 plt.title(r'Count-Statistic of $\lambda_{min}$')
+'''
 
-plt.figure()
-plt.bar(np.linspace(1, p, p), beta_lse, width=0.5)
-plt.xlabel('Feature #')
-plt.ylabel('Count')
-plt.title(r'Count-Statistic of $\lambda_{lse}$')
-
+print(get_metrics(beta, make_bin(beta_lse08)))
+print(get_metrics(beta, make_bin(beta_lse)))
+print(get_metrics(beta, make_bin(beta_lse12)))
 plt.show()
