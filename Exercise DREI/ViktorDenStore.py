@@ -26,34 +26,29 @@ print(f"data is loaded as {type(data)} with shape: {data.shape}")
 data["Class"] = labels
 target = "Class"
 
-print(labels[labels["Class"] == "PRAD"])
 print(data.head())
 print(data.Class.value_counts())
 
+
 X = data.loc[:, data.columns != target]
 Y = data.loc[:, data.columns == target]
-print(X.shape)
-print(Y.shape)
-print(labels)
-print(Y)
+
 
 x_train, x_test, y_train, y_test = train_test_split(X, Y, test_size=0.33, random_state=8)
 
-
-#print(X.columns[0])
 select_feature = SelectKBest(k=200).fit(x_train, y_train) # dont want entire data for overfitting reasons
 
 selected_features_df = pd.DataFrame({'Feature':list(x_train.columns),
                                      'Scores':select_feature.scores_})
-print(selected_features_df.sort_values(by='Scores', ascending=False))
+#print(selected_features_df.sort_values(by='Scores', ascending=False))
 #print(selected_features_df)
 scores = np.array(selected_features_df.sort_values(by='Scores', ascending=False))
-print(scores[:,1])
+#print(scores[:,1])
 
 
 r = 200
 plo = scores[0:r]
-print(plo)
+#print(plo)
 #plt.hist(scores[0:200, 1],bins=200)
 plt.bar(np.linspace(0,r,r),plo[:,1])
 #plt.show()
@@ -65,7 +60,25 @@ plt.bar(np.linspace(0,r,r),plo[:,1])
 plt.title("Top 200 features")
 plt.xlabel("Features sorted by f-score")
 plt.ylabel("Score function")
+
+fig, ax =plt.subplots(1,1)
+data=[[300],
+    [146],
+    [141],
+    [136],
+    [78]
+      ]
+column_labels=["Class distribution"]
+df=pd.DataFrame(data,columns=column_labels)
+ax.axis('tight')
+ax.axis('off')
+ax.table(cellText=df.values,
+        colLabels=df.columns,
+        rowLabels=["BRCA","KIRC","LUAD","PRAD","COAD"],
+        loc="center")
+
 plt.show()
+
 #plt.plot(selected_features_df.sort_values(by='Scores', ascending=False))
 #plt.show()
 
