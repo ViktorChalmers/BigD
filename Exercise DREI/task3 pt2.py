@@ -111,7 +111,7 @@ SNR = [0.5, 1.0, 2.0]
 # SNR = 2.0
 M = 50
 
-X, y, beta = simulate_data(n=n, p=p, rng=rng, sparsity=0.99)
+X, y, beta = simulate_data(n=n, p=p, rng=rng, sparsity=sparsity)
 beta = make_bin(beta)
 
 beta_min = np.zeros(p)
@@ -129,9 +129,9 @@ for boot in trange(M):
     alpha_min = model_min.alpha_
     alpha_lse = get_alpha_lse(lasso=model_min, n_folds=n_folds)  # Gives the best feature selection
 
-    model_lse08 = Lasso(alpha=alpha_lse * 0.5).fit(X_boot, y_boot)
+    model_lse08 = Lasso(alpha=alpha_lse * 0.8).fit(X_boot, y_boot)
     model_lse = Lasso(alpha=alpha_lse).fit(X_boot, y_boot)
-    model_lse12 = Lasso(alpha=alpha_lse * 2).fit(X_boot, y_boot)
+    model_lse12 = Lasso(alpha=alpha_lse * 1.2).fit(X_boot, y_boot)
 
     beta_min += make_bin(model_min.coef_)
     beta_lse08 += make_bin(model_lse08.coef_)
