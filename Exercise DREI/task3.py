@@ -65,6 +65,9 @@ def make_bin(beta):
     beta[beta != 0] = 1
     return beta.astype('int32')
 
+def plot_hist():
+    pass
+
 
 ###############     MAIN    ###############
 
@@ -72,24 +75,26 @@ rng = Generator(PCG64())
 p = 750
 n = [100, 200, 500, 750] 
 n = 1000
-
 sparsity = [0.75, 0.9, 0.95, 0.99]
-sparsity = [0.75,0.9]
-
+sparsity = 0.99
 n_folds = 5
+SNR = [0.5, 1.0, 2.0]
+#SNR = 2.0
 M = 50
 
-X, y, beta = simulate_data(n = n, p = p, rng = rng, sparsity = 0.99)
+
+X, y, beta = simulate_data(n = n, p = p, rng = rng, sparsity = 0.99, SNR = SNR)
 beta = make_bin(beta)
 
 beta_min = np.zeros(p)
 beta_lse = np.zeros(p)
 
+#Change one parameter at a time
 for boot in trange(M):
     #Bootstrap data
     X_boot, y_boot = resample(X, y, n_samples=n)
 
-    #Rest
+    #Lasso fit and get hyper parameter
     model_min = LassoCV(cv = n_folds).fit(X_boot, y_boot)   #Gives the best prediction quality
     alpha_min = model_min.alpha_
     alpha_lse = get_alpha_lse(lasso = model_min, n_folds = n_folds)   #Gives the best feature selection
@@ -102,10 +107,12 @@ plt.figure()
 plt.bar(np.linspace(1, p, p),beta_min, width=0.5)
 plt.xlabel('Feature #')
 plt.ylabel('Count')
+plt.title(r'Count-Statistic of $\lambda_{min}$')
 
 plt.figure()
 plt.bar(np.linspace(1, p, p),beta_lse,width=0.5)
 plt.xlabel('Feature #')
 plt.ylabel('Count')
+plt.title(r'Count-Statistic of $\lambda_{lse}$')
 
 plt.show()
